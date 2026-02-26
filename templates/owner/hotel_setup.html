@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Cookie Consent + Analytics -->
+  <script src="/static/js/cookie-consent.js?v=2" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/static/logo-icon.png">
+  <link rel="apple-touch-icon" href="/static/logo-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#fafaf9',
+              darker: '#0b1224',
+              slate: '#1e293b',
+              teal: '#14b8a6',
+              accent: '#2dd4bf',
+              sky: '#0ea5e9'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <script src="/static/js/i18n.js"></script>
+  <title data-i18n="owner_setup_title">Hotel Setup</title>
+  <style>
+    body {
+      background-color: #fafaf9;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .bg-white {
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-stone-900 antialiased">
+  <!-- Background Effects -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+  </div>
+
+  <!-- Header Navigation -->
+  <nav class="relative z-50 border-b border-stone-200 bg-stone-50/80 backdrop-blur-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-4">
+          <a href="/ui/owner/dashboard"
+            class="flex items-center justify-center w-10 h-10 rounded-lg bg-white hover:bg-stone-100 text-stone-500 hover:text-stone-900 transition-colors">
+            <i class="fa-solid fa-arrow-left"></i>
+          </a>
+          <div>
+            <h1 class="text-lg font-semibold text-stone-900" data-i18n="owner_setup_header">Hotel Connection Setup</h1>
+            <p class="text-xs text-stone-500" id="hotelSetupSubtitle" data-i18n="owner_setup_subtitle">Configure
+              messaging channel</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/ui/owner/dashboard"
+            class="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 rounded-lg transition-colors">
+            <i class="fa-solid fa-grid-2 mr-2"></i><span data-i18n="owner_back_dashboard">Back to Dashboard</span>
+          </a>
+          <button id="logoutBtn"
+            class="px-3 py-2 text-sm text-stone-600 hover:text-stone-900 hover:bg-white rounded-lg transition-colors">
+            <i class="fa-solid fa-sign-out-alt mr-2"></i><span data-i18n="logout">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header with Hotel Info -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center shadow-md">
+          <img src="/static/logo-icon.png" alt="Logo" class="w-7 h-7 object-contain"
+            style="filter: brightness(0) invert(1);">
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-stone-900" id="setupHotelName">Connection Setup</h2>
+          <p class="text-stone-500" id="setupHotelId">Loading hotel information...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="status" class="hidden">
+      <div class="bg-white border border-stone-200 shadow-sm rounded-2xl p-8 text-center">
+        <div class="inline-flex items-center gap-3 text-stone-500">
+          <i class="fa-solid fa-spinner fa-spin text-xl"></i>
+          <span data-i18n="loading_common">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Setup Card -->
+    <div class="bg-white border border-stone-200 shadow-sm rounded-2xl p-6">
+      <!-- Communication Channel Section -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center">
+          <i class="fa-solid fa-plug text-stone-900"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-stone-900" data-i18n="owner_channel_title">Communication Channel</h3>
+          <p class="text-sm text-stone-500" data-i18n="owner_channel_subtitle">Choose and configure the provider for
+            this hotel.</p>
+        </div>
+      </div>
+
+      <!-- Interface Language & Lock -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_interface_language">Interface
+            Language</label>
+          <select id="setupInterfaceLanguage"
+            class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5">
+            <option value="en" data-i18n="lang_en">English</option>
+            <option value="ro" data-i18n="lang_ro">Romana</option>
+            <option value="th" data-i18n="lang_th">Thai</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="setupLanguageLocked"
+              class="w-4 h-4 rounded border-stone-200 bg-stone-50 text-stone-900 focus:ring-stone-500">
+            <span class="text-sm text-stone-600" data-i18n="owner_lock_language">Lock interface language for Admin
+              UI</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Security PIN -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_security_pin_hint">Security PIN
+          (share with hotel admin to unlock)</label>
+        <div class="flex gap-2">
+          <input type="text"
+            class="flex-1 bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5 font-mono tracking-wider"
+            id="setupSecurityPin" readonly>
+          <button class="px-4 py-2.5 bg-stone-100 hover:bg-white/20 text-stone-900 rounded-lg transition-colors"
+            type="button" id="copySetupPin" data-i18n="owner_copy_pin">Copy PIN</button>
+        </div>
+      </div>
+
+      <!-- Provider Selection -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_provider">Provider</label>
+        <select id="setupProvider"
+          class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5">
+          <option value="meta_default" data-i18n="owner_provider_meta_default">WhatsApp (Platform Default)</option>
+          <option value="meta_custom" data-i18n="owner_provider_meta_custom">WhatsApp (Custom / BYOC)</option>
+          <option value="line" data-i18n="owner_provider_line">LINE</option>
+        </select>
+        <p class="text-xs text-slate-500 mt-2" data-i18n="owner_lock_hint">Lock configuration so only you/Admins can
+          change it.</p>
+        <label class="flex items-center gap-2 mt-2 cursor-pointer">
+          <input type="checkbox" id="setupLocked" checked
+            class="w-4 h-4 rounded border-stone-200 bg-stone-50 text-stone-900 focus:ring-stone-500">
+          <span class="text-sm text-stone-600" data-i18n="owner_lock_messaging">Lock messaging configuration</span>
+        </label>
+      </div>
+
+      <!-- WhatsApp Custom Fields -->
+      <div id="waFields" class="bg-stone-50 border border-stone-100 rounded-xl p-4 mb-6 hidden">
+        <h4 class="text-md font-semibold text-stone-900 mb-4" data-i18n="owner_wa_title">WhatsApp Custom Keys</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_wa_phone_id">Phone Number
+              ID</label>
+            <input type="text"
+              class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupWaPhoneId" data-i18n-placeholder="owner_wa_phone_id_ph" placeholder="e.g. 123456789">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_wa_token">Access Token</label>
+            <input type="password"
+              class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupWaAccessToken" data-i18n-placeholder="owner_wa_token_ph" placeholder="Access Token">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_wa_business_id">Business
+              Account ID (optional)</label>
+            <input type="text"
+              class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupWaBusinessId" data-i18n-placeholder="owner_wa_business_id_ph" placeholder="WABA ID">
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-3" data-i18n="owner_wa_hint">Leave blank to keep current values; save empty
+          to revert to platform default.</p>
+      </div>
+
+      <!-- LINE Fields -->
+      <div id="lineFields" class="bg-stone-50 border border-stone-100 rounded-xl p-4 mb-6 hidden">
+        <h4 class="text-md font-semibold text-stone-900 mb-4" data-i18n="owner_line_title">LINE Channel Keys</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_line_secret">Channel
+              Secret</label>
+            <input type="password"
+              class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupLineSecret" data-i18n-placeholder="owner_line_secret_ph" placeholder="Channel Secret">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_line_token">Channel Access
+              Token</label>
+            <input type="password"
+              class="w-full bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupLineToken" data-i18n-placeholder="owner_line_token_ph" placeholder="Channel Access Token">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-stone-600 mb-2" data-i18n="owner_line_webhook">Webhook
+            URL</label>
+          <div class="flex gap-2">
+            <input type="text"
+              class="flex-1 bg-stone-50 border border-stone-200 text-stone-900 focus:ring-stone-500 focus:border-stone-500 rounded-lg px-4 py-2.5"
+              id="setupLineWebhook" readonly>
+            <button class="px-4 py-2.5 bg-stone-100 hover:bg-white/20 text-stone-900 rounded-lg transition-colors"
+              id="copySetupWebhook" type="button" data-i18n="owner_copy_webhook">Copy</button>
+          </div>
+          <p class="text-xs text-slate-500 mt-2" data-i18n="owner_line_webhook_hint">Add this URL in LINE Messaging API
+            settings after saving.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-3">
+        <button
+          class="px-6 py-2.5 bg-stone-900 text-stone-50 font-medium rounded-xl hover:bg-stone-800 transition-all shadow-sm"
+          id="saveSetupBtn">
+          <i class="fa-solid fa-save mr-2"></i><span data-i18n="btn_save">Save</span>
+        </button>
+        <button
+          class="px-6 py-2.5 bg-stone-100 hover:bg-white/20 text-stone-900 font-medium rounded-xl transition-colors"
+          id="testSetupBtn">
+          <i class="fa-solid fa-vial mr-2"></i><span data-i18n="btn_test_connection">Test Connection</span>
+        </button>
+      </div>
+
+      <!-- Alert Message -->
+      <div id="setupAlert" class="hidden mt-4 rounded-lg p-4"></div>
+    </div>
+  </main>
+
+  <script src="/static/owner/owner.js"></script>
+  <script>
+    window.ownerPage = "hotel_setup";
+    document.addEventListener("DOMContentLoaded", () => {
+      I18N.apply();
+
+      // Update hotel name/ID from URL params or API response
+      const urlParams = new URLSearchParams(window.location.search);
+      const hotelId = urlParams.get('hotel_id') || window.location.pathname.split('/').pop();
+      if (hotelId) {
+        document.getElementById('setupHotelId').textContent = 'Hotel #' + hotelId;
+      }
+    });
+  </script>
+</body>
+
+</html>

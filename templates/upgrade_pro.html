@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Cookie Consent + Analytics -->
+  <script src="/static/js/cookie-consent.js?v=2" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgrade to PRO - AI Hotel Suite</title>
+  <meta name="robots" content="noindex, follow">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Kanit:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              stone: '#fafaf9',
+              dark: '#1c1917',
+              slate: '#57534e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            thai: ['Kanit', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #fafaf9;
+      /* Stone-50 */
+      min-height: 100vh;
+    }
+
+    .card-pro {
+      background-color: white;
+      border: 1px solid #14b8a6;
+      /* Teal border since it's Pro */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    [lang="th"] * {
+      font-family: 'Kanit', sans-serif !important;
+    }
+
+    .feature-check {
+      color: #14b8a6;
+    }
+
+    .btn-teal {
+      background-color: #14b8a6;
+      transition: all 0.3s ease;
+    }
+
+    .btn-teal:hover {
+      background-color: #0d9488;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.2);
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased text-stone-900">
+
+  <!-- Background Effects removed -->
+
+  <!-- Header -->
+  <nav class="relative z-50 py-6 px-8">
+    <a href="/" class="flex items-center gap-3 w-fit group">
+      <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;"
+        class="group-hover:scale-105 transition-transform">
+      <span class="text-2xl font-medium tracking-tight text-stone-900">AI Hotel Suite</span>
+    </a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="relative z-10 container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-120px)]">
+    <div class="w-full max-w-lg">
+
+      <!-- Title -->
+      <div class="text-center mb-8">
+        <h1 id="pageTitle" class="text-4xl md:text-5xl font-extrabold mb-3 text-stone-900">Upgrade to PRO</h1>
+        <p id="pageSubtitle" class="text-stone-500 text-lg">Unlock PMS Integration and advanced features</p>
+      </div>
+
+      <!-- Canceled Alert -->
+      <div id="canceled-alert" class="hidden mb-6">
+        <div
+          class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 px-4 py-3 rounded-xl flex items-start gap-3">
+          <svg class="w-5 h-5 mt-0.5 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+            </path>
+          </svg>
+          <div>
+            <strong id="canceledTitle" class="font-bold">Payment canceled.</strong>
+            <span id="canceledSubtitle" class="block text-sm opacity-80">No worries! You can try again when you're
+              ready.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRO Card -->
+      <div class="card-pro rounded-3xl p-8 relative overflow-hidden">
+
+        <!-- Badge -->
+        <div class="absolute -top-0 left-1/2 -translate-x-1/2">
+          <div class="bg-stone-900 text-white text-xs font-bold px-4 py-1.5 rounded-b-lg uppercase tracking-wider">
+            <span id="mostPopular">Most Popular</span>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mt-4 mb-8">
+          <h2 class="text-stone-900 font-bold text-sm tracking-widest uppercase mb-3">PRO</h2>
+          <div id="priceDisplay" class="text-5xl font-extrabold mb-2 text-stone-900">€79<span
+              class="text-xl text-stone-400 font-normal">/month</span></div>
+          <p id="priceSubtitle" class="text-stone-500">For hotels with PMS integration</p>
+        </div>
+
+        <!-- Features -->
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature1">Everything in Basic +</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-900 font-semibold" data-i18n="feature2">Full PMS Integration with Apaleo (Cloudbeds
+              - Coming Soon)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature3">Personalized Guest Experience (Name recognition)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature4">Automated Guest Journey (Pre-arrival → Checkout)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature5">Smart Upsell & Feedback Collection</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature6">Real-time Sync (Zero manual data entry)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 feature-check flex-shrink-0" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-stone-600" data-i18n="feature7">Dedicated Success Manager</span>
+          </li>
+        </ul>
+
+        <!-- Error -->
+        <div id="error"
+          class="hidden bg-red-500/10 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm mb-4 flex items-start gap-2">
+          <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="errorTarget"></span>
+        </div>
+
+        <!-- Terms -->
+        <div class="mb-5">
+          <label class="flex items-start gap-3 cursor-pointer group">
+            <input type="checkbox" id="termsCheckbox"
+              class="mt-1 w-5 h-5 rounded border-stone-300 bg-white text-stone-900 focus:ring-stone-900 focus:ring-offset-0 cursor-pointer">
+            <span id="termsLabel" class="text-sm text-stone-500 group-hover:text-stone-700">
+              I have read and agree to the <a href="/terms" target="_blank"
+                class="text-stone-900 hover:underline font-medium">Terms of Service</a>
+            </span>
+          </label>
+        </div>
+
+        <!-- Button -->
+        <button id="upgradeBtn"
+          class="w-full py-4 btn-teal text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2">
+          <span id="btnText">Get PRO</span>
+          <span id="btnSpinner" class="hidden animate-spin">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+          </span>
+        </button>
+
+        <p id="securePayment" class="text-center text-stone-500 text-xs mt-4">Secure payment via Stripe. Cancel anytime.
+        </p>
+      </div>
+
+      <!-- Back Link -->
+      <div class="text-center mt-8">
+        <a href="/"
+          class="text-stone-500 hover:text-stone-800 transition-colors text-sm font-medium inline-flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+            </path>
+          </svg>
+          <span id="backLink">Back to Home</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Translations
+    const translations = {
+      en: {
+        pageTitle: "Upgrade to PRO",
+        pageSubtitle: "Unlock PMS Integration and advanced features",
+        canceledTitle: "Payment canceled.",
+        canceledSubtitle: "No worries! You can try again when you're ready.",
+        priceSubtitle: "For hotels with PMS integration",
+        feature1: "Everything in Basic +",
+        feature2: "Full PMS Integration with Apaleo (Cloudbeds - Coming Soon)",
+        feature3: "Personalized Guest Experience (Name recognition)",
+        feature4: "Automated Guest Journey (Pre-arrival → Checkout)",
+        feature5: "Smart Upsell & Feedback Collection",
+        feature6: "Real-time Sync (Zero manual data entry)",
+        feature7: "Dedicated Success Manager",
+        btnText: "Get PRO",
+        securePayment: "Secure payment via Stripe. Cancel anytime.",
+        backLink: "Back to Home",
+        networkError: "Network error. Please try again.",
+        somethingWrong: "Something went wrong",
+        loginRequired: "Please login or register first",
+        termsLabel: 'I have read and agree to the <a href="/terms" target="_blank" class="text-stone-900 hover:underline font-medium">Terms of Service</a>',
+        termsRequired: "Please accept the Terms of Service to continue",
+        mostPopular: "Most Popular",
+        perMonth: "/month"
+      }
+    };
+
+    // Pricing
+    const pricing = {
+      en: { price: "€79", symbol: "€", amount: "79" }
+    };
+
+    const lang = 'en';
+
+    // Apply translations and pricing
+    function applyTranslations() {
+      const t = translations.en;
+      const p = pricing.en;
+
+      // Set document language
+      document.documentElement.lang = 'en';
+
+      // Update text content
+      document.getElementById('pageTitle').textContent = t.pageTitle;
+      document.getElementById('pageSubtitle').textContent = t.pageSubtitle;
+      document.getElementById('canceledTitle').textContent = t.canceledTitle;
+      document.getElementById('canceledSubtitle').textContent = t.canceledSubtitle;
+      document.getElementById('priceSubtitle').textContent = t.priceSubtitle;
+      document.getElementById('btnText').textContent = t.btnText;
+      document.getElementById('securePayment').textContent = t.securePayment;
+      document.getElementById('backLink').textContent = t.backLink;
+      document.getElementById('mostPopular').textContent = t.mostPopular;
+
+      // Update price display
+      document.getElementById('priceDisplay').innerHTML = `${p.price}<span class="text-xl text-gray-400 font-normal">${t.perMonth}</span>`;
+
+      // Update features
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          el.textContent = t[key];
+        }
+      });
+
+      // Update terms label (uses innerHTML for link)
+      document.getElementById('termsLabel').innerHTML = t.termsLabel;
+    }
+
+    // Apply on load
+    applyTranslations();
+
+    // Handle token from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    if (urlToken) {
+      localStorage.setItem('token', urlToken);
+      localStorage.setItem('staffToken', urlToken);
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // Check if canceled
+    if (urlParams.get('canceled') === 'true') {
+      document.getElementById('canceled-alert').classList.remove('hidden');
+    }
+
+    // Upgrade button handler
+    document.getElementById('upgradeBtn').addEventListener('click', async () => {
+      const token = localStorage.getItem('staffToken') || localStorage.getItem('token');
+      const errorEl = document.getElementById('error');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const termsCheckbox = document.getElementById('termsCheckbox');
+      const t = translations.en;
+
+      errorEl.classList.add('hidden');
+
+      // Check if logged in
+      if (!token) {
+        document.getElementById('errorTarget').textContent = t.loginRequired;
+        errorEl.classList.remove('hidden');
+        // Redirect to register after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/register';
+        }, 2000);
+        return;
+      }
+
+      // Validate terms checkbox
+      if (!termsCheckbox.checked) {
+        document.getElementById('errorTarget').textContent = t.termsRequired;
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      btnText.classList.add('hidden');
+      btnSpinner.classList.remove('hidden');
+
+      try {
+        const resp = await fetch('/api/stripe/create-pro-checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          document.getElementById('errorTarget').textContent = data.detail || t.somethingWrong;
+          errorEl.classList.remove('hidden');
+          btnText.classList.remove('hidden');
+          btnSpinner.classList.add('hidden');
+          return;
+        }
+
+        // Redirect to Stripe Checkout
+        window.location.href = data.checkout_url;
+
+      } catch (err) {
+        document.getElementById('errorTarget').textContent = t.networkError;
+        errorEl.classList.remove('hidden');
+        btnText.classList.remove('hidden');
+        btnSpinner.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+
+</html>

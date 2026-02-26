@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Cookie Consent + Analytics -->
+  <script src="/static/js/cookie-consent.js?v=2" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/static/logo-icon.png">
+  <link rel="apple-touch-icon" href="/static/logo-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#fafaf9',
+              darker: '#0b1224',
+              slate: '#1e293b',
+              teal: '#14b8a6',
+              accent: '#2dd4bf',
+              sky: '#0ea5e9'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <script src="/static/js/i18n.js"></script>
+  <title data-i18n="login_title_owner">Owner Login</title>
+  <style>
+    body {
+      background-color: #fafaf9;
+      /* Stone-50 */
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-stone-50 text-stone-900 antialiased flex items-center justify-center font-sans p-4">
+
+  <!-- Split Card Layout -->
+  <div
+    class="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-stone-200">
+
+    <!-- Left Side: Brand/Welcome (Dark Stone) -->
+    <div
+      class="md:w-1/2 p-8 md:p-12 flex flex-col justify-between text-stone-900 relative overflow-hidden bg-cover bg-center"
+      style="background-image: url('/static/pexels-knownasovan-62693.jpg');">
+      <!-- Dark Overlay -->
+      <div class="absolute inset-0 bg-black/60 z-0"></div>
+
+      <!-- Decorative background element (Removed as image replaces it) -->
+
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-6">
+          <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+          <span class="text-2xl font-medium tracking-tight text-white">AI Hotel Suite</span>
+        </div>
+        <h2 class="text-3xl font-bold mb-4 tracking-tight" data-i18n="owner_welcome_title">Welcome back</h2>
+        <p class="text-stone-200 text-lg leading-relaxed" data-i18n="owner_welcome_desc">
+          Access your dashboard to manage conversations, view insights, and configure your AI concierge.
+        </p>
+      </div>
+
+      <div class="relative z-10 mt-12 md:mt-0">
+        <p class="text-sm text-stone-300">
+          AI Hotel Suite
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
+      <div class="max-w-sm mx-auto w-full">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-stone-900 mb-2" data-i18n="login_title_owner">Owner Access</h1>
+          <p class="text-stone-500 text-sm" data-i18n="login_subtitle">Please enter your details to sign in.</p>
+        </div>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-bold text-stone-700 mb-2" data-i18n="login_email">Email</label>
+            <input type="email"
+              class="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all"
+              id="email" data-i18n-placeholder="login_email_ph" placeholder="you@example.com">
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-stone-700 mb-2" data-i18n="login_password">Password</label>
+            <input type="password"
+              class="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all"
+              id="password" data-i18n-placeholder="login_password_ph" placeholder="Enter your password">
+          </div>
+
+          <div class="flex justify-end">
+            <a href="#" id="forgotLink"
+              class="text-sm text-stone-500 hover:text-stone-900 transition-colors font-medium"
+              data-i18n="login_forgot">Forgot password?</a>
+          </div>
+
+          <!-- Error Message -->
+          <div id="error"
+            class="hidden bg-red-50 border border-red-100 rounded-xl p-3 text-sm text-red-600 flex items-start gap-2">
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="message-content"></span>
+          </div>
+
+          <!-- Login Button -->
+          <button id="loginBtn"
+            class="w-full px-6 py-4 bg-stone-900 text-stone-50 font-bold rounded-xl hover:bg-stone-800 hover:-translate-y-0.5 transition-all duration-300 shadow-sm"
+            data-i18n="login_button">
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => { I18N.apply(); });
+    const tokenKey = "ownerToken";
+
+    // Handle Enter key
+    document.getElementById("password").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("loginBtn").click();
+      }
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorEl = document.getElementById("error");
+      const errorMsgDetails = errorEl.querySelector('.message-content');
+
+      errorEl.classList.add("hidden");
+
+      if (!email || !password) {
+        if (errorMsgDetails) {
+          errorMsgDetails.textContent = (typeof I18N !== 'undefined' && I18N.t('login_error_fields')) || "Please fill in all fields";
+        }
+        errorEl.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/owner/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!resp.ok) {
+          if (errorMsgDetails) {
+            errorMsgDetails.textContent = (typeof I18N !== 'undefined' && I18N.t('login_error')) || "Invalid email or password";
+          }
+          errorEl.classList.remove("hidden");
+          return;
+        }
+
+        const data = await resp.json();
+        localStorage.setItem(tokenKey, data.access_token);
+        window.location = "/ui/owner/dashboard";
+      } catch (err) {
+        if (errorMsgDetails) {
+          errorMsgDetails.textContent = "Network error occurred.";
+        }
+        errorEl.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("forgotLink").addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      if (!email) {
+        alert((typeof I18N !== 'undefined' && I18N.t('forgot_email_required')) || "Please enter your email first");
+        return;
+      }
+      try {
+        await fetch("/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, user_type: "owner" })
+        });
+        alert((typeof I18N !== 'undefined' && I18N.t('forgot_email_sent')) || "Reset password link has been sent to your email.");
+      } catch (e) {
+        alert("Error sending reset link.");
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% include 'admin/layout_head.html' %}
+  <title>AI Assistant Settings</title>
+  <style>
+    /* Protected content overlay */
+    .protected-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .protected-overlay .lock-icon {
+      font-size: 64px;
+      color: #6c757d;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* Lighter tooltip style */
+    .tooltip-light .tooltip-inner {
+      background-color: #6c757d;
+      max-width: 450px;
+    }
+
+    .tooltip-light.bs-tooltip-end .tooltip-arrow::before,
+    .tooltip-light.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before {
+      border-right-color: #6c757d;
+    }
+
+    .tooltip-light.bs-tooltip-start .tooltip-arrow::before,
+    .tooltip-light.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before {
+      border-left-color: #6c757d;
+    }
+
+    .tooltip-light.bs-tooltip-top .tooltip-arrow::before {
+      border-top-color: #6c757d;
+    }
+
+    .tooltip-light.bs-tooltip-bottom .tooltip-arrow::before {
+      border-bottom-color: #6c757d;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Protected Content Overlay - shown until password verified -->
+  <div id="protectedOverlay" class="protected-overlay">
+    <div class="text-center">
+      <i class="fa-solid fa-lock lock-icon"></i>
+      <p class="mt-3 text-muted" data-i18n="int_protected_page">This page is protected</p>
+    </div>
+  </div>
+  <!-- Password Verification Modal -->
+  <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-shield-halved me-2 text-primary"></i><span
+              data-i18n="int_verify_password">Verify Password</span></h5>
+        </div>
+        <div class="modal-body">
+          <div id="passwordModalAlert" class="alert d-none"></div>
+          <p class="text-muted small mb-3" data-i18n="int_password_required_hint">Enter your login password to access
+            this section.</p>
+          <label class="form-label" data-i18n="int_your_password">Your Password</label>
+          <input type="password" class="form-control" id="passwordInput" placeholder="Enter password"
+            data-i18n-placeholder="int_password_placeholder" autofocus>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" id="goBackBtn"><i class="fa-solid fa-arrow-left me-1"></i><span
+              data-i18n="int_go_back">Go Back</span></button>
+          <button class="btn btn-primary" id="confirmPasswordBtn"><i class="fa-solid fa-unlock me-1"></i><span
+              data-i18n="int_unlock">Unlock</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="app-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <a href="/ui/admin/tasks" class="d-flex align-items-center gap-2 text-decoration-none text-white">
+            <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+            <span class="fs-4 fw-bold">AI Hotel Suite</span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav d-flex flex-column">
+        <a href="#" id="tasksLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_tasks">Tasks</span>
+        </a>
+        <a href="#" id="conversationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-comments"></i> <span data-i18n="nav_conversations">Conversations</span>
+        </a>
+        <div class="flex-grow-1"></div>
+        <hr class="my-2 text-muted opacity-50">
+        <a href="#" class="nav-item active">
+          <i class="fa-solid fa-brain"></i> <span data-i18n="nav_ai_settings">AI Settings</span>
+        </a>
+        <a href="#" id="integrationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-plug"></i> <span data-i18n="nav_integrations">Integrations</span>
+        </a>
+        <a href="#" id="subscriptionLinkSidebar" class="nav-item d-none">
+          <i class="fa-solid fa-credit-card"></i> <span data-i18n="nav_subscription">Subscription</span>
+        </a>
+        <a href="#" id="helpLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-circle-question"></i> <span data-i18n="nav_help">Help</span>
+        </a>
+      </nav>
+      {% include 'admin/sidebar_footer.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Trial Banner -->
+      <div id="trialBanner" class="alert alert-warning d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <span data-i18n="trial_banner_text">Trial:</span>
+            <strong id="trialDaysLeft">0</strong>
+            <span data-i18n="trial_days_remaining">days remaining</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-dark btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial Expired Banner -->
+      <div id="trialExpiredBanner" class="alert alert-danger d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span data-i18n="trial_expired_text">Trial expired! Your bot is stopped. Upgrade to continue.</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-danger btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1" data-i18n="settings_title">AI Assistant & Policies</h2>
+          <p class="text-muted mb-0" data-i18n="settings_subtitle">Configure bot behavior, persona, and policies.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary position-relative" id="notificationBell"
+            data-i18n-title="notif_label" aria-label="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="notificationMute"
+            data-i18n-title="notif_sound_on" aria-label="Sound">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+          <select id="lang-select" class="form-select form-select-sm lang-select-sm">
+            <option value="en" data-i18n="lang_en">🇬🇧 English</option>
+          </select>
+        </div>
+      </div>
+      <div id="alert" class="alert d-none" role="alert"></div>
+      <form id="aiForm" class="mt-3">
+        <div class="card mb-3" id="cardWelcome">
+          <div class="card-header" data-i18n="sec_welcome">Welcome Message & Tone</div>
+          <div class="card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label" data-i18n="lbl_tone">Tone</label>
+                <select class="form-select" name="tone" id="toneSelect" required>
+                  <option value="friendly" data-i18n="tone_friendly">Friendly</option>
+                  <option value="professional" data-i18n="tone_professional">Professional</option>
+                </select>
+                <small class="text-muted" data-i18n="tone_hint">Affects bot responses and welcome message style</small>
+              </div>
+              <div class="col-md-8">
+                <div class="form-check mt-4" id="bilingualWelcomeContainer">
+                  <input class="form-check-input" type="checkbox" name="bilingual_welcome" id="bilingualWelcome">
+                  <label class="form-check-label" for="bilingualWelcome" data-i18n="lbl_bilingual_welcome">
+                    Also send in English
+                  </label>
+                  <small class="text-muted d-block" data-i18n="bilingual_welcome_hint">Sends a second message in English
+                    after the main welcome (for tourists)</small>
+                </div>
+              </div>
+            </div>
+
+            <label class="form-label" data-i18n="lbl_welcome_preview">Welcome Message Preview</label>
+            <div id="welcomePreview" class="border rounded p-3 bg-light mb-2" style="min-height: 80px;">
+              <em class="text-muted" data-i18n="loading">Loading...</em>
+            </div>
+            <small class="text-muted" data-i18n="welcome_preview_hint">This is the default message sent to guests after
+              they connect. Extracts: hotel name, room number, guest name (PRO only).</small>
+          </div>
+        </div>
+
+        <div class="card mb-3" id="cardFacts">
+          <div class="card-header" data-i18n="sec_facts">Hotel Facts</div>
+          <div class="card-body row g-2">
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_wifi_ssid">WiFi SSID</label><input
+                class="form-control" name="wifi_ssid" /></div>
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_wifi_pass">WiFi Password</label><input
+                class="form-control" name="wifi_pass" /></div>
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_breakfast">Breakfast hours</label><input
+                class="form-control" name="breakfast_hours" data-i18n-placeholder="lbl_breakfast_ph" /></div>
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_checkin">Check-in time</label><input
+                class="form-control" name="checkin_time" data-i18n-placeholder="lbl_checkin_ph" /></div>
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_checkout">Check-out time</label><input
+                class="form-control" name="checkout_time" data-i18n-placeholder="lbl_checkout_ph" /></div>
+            <div class="col-md-4"><label class="form-label" data-i18n="lbl_parking">Parking policy</label><input
+                class="form-control" name="parking_policy" data-i18n-placeholder="lbl_parking_ph" /></div>
+          </div>
+        </div>
+
+        <div class="card mb-3" id="cardKnowledge">
+          <div class="card-header" data-i18n="sec_kb">Knowledge Base & Documents</div>
+          <div class="card-body row g-2">
+            <div class="col-md-12">
+              <label class="form-label" data-i18n="lbl_upload">Upload PDF / TXT</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="file" id="kbFile" class="d-none" accept=".pdf,.txt" />
+                <button type="button" class="btn btn-outline-secondary" id="kbFileTrigger"><i
+                    class="fa-solid fa-file-arrow-up me-1"></i><span data-i18n="file_choose">Choose file</span></button>
+                <span class="text-muted small" id="kbFileName" data-i18n="file_none">No file chosen</span>
+              </div>
+              <small class="text-muted" data-i18n="ai_kb_hint">Upload rules/menus/guides; the extracted text will be
+                used in responses.</small>
+              <button type="button" class="btn btn-outline-primary mt-2" id="uploadBtn" data-i18n="btn_upload">Upload &
+                Process</button>
+            </div>
+            <div class="col-md-12">
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <label class="form-label mb-0" data-i18n="lbl_extract_preview">Extracted Knowledge</label>
+                <button type="button" class="btn btn-outline-danger btn-sm" id="clearKnowledgeBtn"><i
+                    class="fa-solid fa-trash me-1"></i><span data-i18n="btn_clear">Clear</span></button>
+              </div>
+              <textarea class="form-control mt-1" name="custom_knowledge_text" rows="12"></textarea>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label mt-2" data-i18n="lbl_additional_notes">Additional Notes</label>
+              <textarea class="form-control" name="hotel_rules_text" rows="4"
+                data-i18n-placeholder="ai_additional_notes_ph" placeholder="Additional notes, if any."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3" id="cardServices">
+          <div class="card-header" data-i18n="sec_services">Available Services</div>
+          <div class="card-body">
+            <!-- Housekeeping Section -->
+            <div class="mb-4">
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" name="allow_housekeeping" id="allowHousekeeping"
+                  checked>
+                <label class="form-check-label fw-semibold" for="allowHousekeeping"
+                  data-i18n="lbl_allow_housekeeping">Housekeeping Requests</label>
+              </div>
+              <small class="text-muted d-block mb-2" data-i18n="housekeeping_hint">Cleaning, towels, toiletries,
+                laundry</small>
+
+              <!-- Housekeeping Sub-options (shown when housekeeping is enabled) -->
+              <div id="housekeepingSubOptions" class="ms-4 border-start ps-3 mt-2">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" name="hk_room_cleaning" id="hkRoomCleaning" checked>
+                  <label class="form-check-label" for="hkRoomCleaning" data-i18n="lbl_hk_room_cleaning">Room
+                    Cleaning</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" name="hk_towels_toiletries" id="hkTowelsToiletries"
+                    checked>
+                  <label class="form-check-label" for="hkTowelsToiletries" data-i18n="lbl_hk_towels_toiletries">Towels &
+                    Toiletries</label>
+                  <small class="text-muted d-block" data-i18n="hk_towels_hint">Soap, shampoo, toilet paper</small>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" name="hk_bed_linen" id="hkBedLinen" checked>
+                  <label class="form-check-label" for="hkBedLinen" data-i18n="lbl_hk_bed_linen">Bed Linen</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" name="hk_laundry" id="hkLaundry" checked>
+                  <label class="form-check-label" for="hkLaundry" data-i18n="lbl_hk_laundry">Laundry Service</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" name="hk_extra_amenities" id="hkExtraAmenities"
+                    checked>
+                  <label class="form-check-label" for="hkExtraAmenities" data-i18n="lbl_hk_extra_amenities">Extra
+                    Amenities</label>
+                  <small class="text-muted d-block" data-i18n="hk_amenities_hint">Pillows, blankets, iron,
+                    slippers</small>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <!-- Food & Beverage Section -->
+            <div class="mb-3">
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" name="allow_food_beverage" id="allowFoodBeverage"
+                  checked>
+                <label class="form-check-label fw-semibold" for="allowFoodBeverage"
+                  data-i18n="lbl_allow_food_beverage">Food & Beverage Orders</label>
+              </div>
+              <small class="text-muted d-block mb-3" data-i18n="food_beverage_hint">Room service, drinks, menu
+                items</small>
+
+              <!-- Menu Section (shown when F&B is enabled) -->
+              <div id="foodBeverageMenu" class="ms-4 border-start ps-3">
+                <label class="form-label" data-i18n="lbl_upload">Upload PDF / TXT</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="file" id="productsFile" class="d-none" accept=".pdf,.txt" />
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="productsFileTrigger"><i
+                      class="fa-solid fa-file-arrow-up me-1"></i><span data-i18n="file_choose">Choose
+                      file</span></button>
+                  <span class="text-muted small" id="productsFileName" data-i18n="file_none">No file chosen</span>
+                </div>
+                <small class="text-muted" data-i18n="ai_products_upload_hint">Upload restaurant/bar/services menu; the
+                  extracted text will be added to the list.</small>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="uploadProductsBtn"
+                  data-i18n="btn_upload">Upload & Process</button>
+
+                <div class="mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label mb-0" data-i18n="lbl_products_hint">Lista Produse & Prețuri</label>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="clearProductsBtn"><i
+                        class="fa-solid fa-trash me-1"></i><span data-i18n="btn_clear">Clear</span></button>
+                  </div>
+                  <textarea class="form-control mt-1" name="hotel_products_text" rows="12"
+                    placeholder="Example:&#10;Water 0.5L: 5 EUR&#10;Sandwich: 10 EUR&#10;Massage: 50 EUR"
+                    data-i18n-placeholder="lbl_products_ph"></textarea>
+                  <small class="text-muted" data-i18n="ai_products_info_hint">Provide the official list of
+                    products/services and prices the bot can use. If it doesn't find a product here, it will reply that
+                    it has no information.</small>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="alert alert-info mb-0 py-2">
+              <i class="fa-solid fa-shield-halved me-2"></i>
+              <small data-i18n="services_safety_note">Maintenance and emergency requests are always enabled for
+                safety.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3" id="cardSecurity">
+          <div class="card-header" data-i18n="sec_session_security">Session Security (Basic Tier)</div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" name="qr_session_expiry_enabled" id="qrSessionExpiry"
+                checked>
+              <label class="form-check-label fw-semibold" for="qrSessionExpiry" data-i18n="lbl_qr_session_expiry">
+                Enable QR Session Expiry
+              </label>
+              <small class="text-muted d-block" data-i18n="qr_session_hint">
+                Guests must re-scan QR code after session expires. Prevents abuse from guests who left.
+              </small>
+              <small class="text-info d-block mt-1">
+                Default: 48 ore / 48 hours
+              </small>
+              <small class="text-danger d-block mt-1" data-i18n="qr_session_warning">
+                ⚠️ If disabled: Previous guests can continue chatting indefinitely after checkout, potentially accessing
+                hotel services or information meant for current guests.
+              </small>
+            </div>
+
+            <div id="qrSessionOptions" class="ms-4 border-start ps-3">
+              <label class="form-label" data-i18n="lbl_session_hours">Session Validity</label>
+              <select class="form-select" name="qr_session_hours" id="qrSessionHours" style="width: 250px;">
+                <option value="24" data-i18n="qr_hours_24">24 hours</option>
+                <option value="48" selected data-i18n="qr_hours_48_recommended">48 hours (Recommended)</option>
+              </select>
+              <small class="text-muted d-block mt-1" data-i18n="session_hours_hint">
+                How long the session stays active after QR scan.
+              </small>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0 py-2">
+              <i class="fa-solid fa-circle-info me-2"></i>
+              <small data-i18n="session_pro_note">PRO tier hotels use PMS checkout dates instead - session expiry is
+                automatic.</small>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-i18n="btn_save">Save</button>
+      </form>
+    </main>
+  </div>
+  <script>
+    const tokenKey = "token";
+    const urlToken = new URLSearchParams(window.location.search).get("token");
+    if (urlToken) localStorage.setItem(tokenKey, urlToken);
+    let isUnlocked = false;
+
+    function getToken() {
+      return localStorage.getItem(tokenKey);
+    }
+
+    function handleUnauthorized() {
+      localStorage.removeItem(tokenKey);
+      document.cookie = "admin_token=; Max-Age=0; path=/";
+      window.location = "/ui/admin/login";
+    }
+
+    function authQuery() {
+      const t = getToken();
+      return t ? `?token=${encodeURIComponent(t)}` : "";
+    }
+
+    // Show password modal on page load (skip for first-time setup)
+    document.addEventListener("DOMContentLoaded", function () {
+      const firstSetupDone = localStorage.getItem('first_setup_done');
+      const passwordModal = document.getElementById("passwordModal");
+      const overlay = document.getElementById("protectedOverlay");
+
+      // Skip password for first-time users (onboarding flow)
+      if (!firstSetupDone) {
+        isUnlocked = true;
+        if (overlay) overlay.style.display = "none";
+        return; // Don't show password modal
+      }
+
+      // Existing users: show password modal
+      if (passwordModal) {
+        const modal = new bootstrap.Modal(passwordModal);
+        modal.show();
+        passwordModal.addEventListener('shown.bs.modal', function () {
+          document.getElementById("passwordInput")?.focus();
+        });
+      }
+    });
+
+    // Go Back button - redirect to tasks
+    document.addEventListener("DOMContentLoaded", function () {
+      const goBackBtn = document.getElementById("goBackBtn");
+      if (goBackBtn) {
+        goBackBtn.addEventListener("click", function () {
+          const token = localStorage.getItem("token");
+          window.location.href = "/ui/admin/tasks" + (token ? "?token=" + encodeURIComponent(token) : "");
+        });
+      }
+
+      // Password verification
+      const confirmPasswordBtn = document.getElementById("confirmPasswordBtn");
+      if (confirmPasswordBtn) {
+        confirmPasswordBtn.addEventListener("click", async function () {
+          const alert = document.getElementById("passwordModalAlert");
+          if (alert) alert.classList.add("d-none");
+
+          const passwordVal = document.getElementById("passwordInput")?.value || "";
+          if (!passwordVal) {
+            if (alert) {
+              alert.textContent = I18N.t('int_password_required') || "Password is required";
+              alert.className = "alert alert-danger";
+              alert.classList.remove("d-none");
+            }
+            return;
+          }
+
+          const token = getToken();
+          if (!token) {
+            window.location = "/ui/admin/login";
+            return;
+          }
+
+          const resp = await fetch("/api/admin/verify-password", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ password: passwordVal }),
+          });
+
+          if (!resp.ok) {
+            if (alert) {
+              alert.textContent = I18N.t('int_password_incorrect') || "Incorrect password";
+              alert.className = "alert alert-danger";
+              alert.classList.remove("d-none");
+            }
+            return;
+          }
+
+          isUnlocked = true;
+          if (alert) alert.classList.add("d-none");
+
+          // Hide the protection overlay
+          const overlay = document.getElementById("protectedOverlay");
+          if (overlay) overlay.style.display = "none";
+
+          // Hide the password modal
+          const passwordModalEl = document.getElementById("passwordModal");
+          if (passwordModalEl) {
+            const modal = bootstrap.Modal.getInstance(passwordModalEl);
+            if (modal) modal.hide();
+          }
+        });
+      }
+
+      // Handle Enter key in password input
+      const passwordInput = document.getElementById("passwordInput");
+      if (passwordInput) {
+        passwordInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.getElementById("confirmPasswordBtn")?.click();
+          }
+        });
+      }
+    });
+
+    function setupFileInput(inputId, triggerId, labelId) {
+      const input = document.getElementById(inputId);
+      const trigger = document.getElementById(triggerId);
+      const label = document.getElementById(labelId);
+      if (!input || !trigger || !label) return;
+      trigger.addEventListener('click', () => input.click());
+      input.addEventListener('change', () => {
+        const name = input.files && input.files.length ? input.files[0].name : (I18N.t('file_none') || 'No file chosen');
+        label.textContent = name;
+      });
+      label.textContent = I18N.t('file_none') || 'No file chosen';
+    }
+
+    const token = getToken();
+    const alertEl = document.getElementById('alert');
+    const form = document.getElementById('aiForm');
+    // Toast notification - appears in top-right corner without scrolling
+    function showToast(msg, type = 'success') {
+      const toastContainer = document.getElementById('notificationToasts');
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+      toast.setAttribute('role', 'alert');
+      toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${msg}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+      toastContainer.appendChild(toast);
+      const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+      bsToast.show();
+      toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+    // Alias for compatibility
+    function showAlert(msg, type = 'success') { showToast(msg, type); }
+    let hotelName = 'Hotel'; // Store hotel name for preview
+    let subscriptionTier = 'free'; // Store subscription tier for preview
+
+    async function loadSettings() {
+      const res = await fetch('/api/admin/ai-settings', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) { showAlert(I18N.t('save_error'), 'danger'); return; }
+      const data = await res.json();
+
+      // Store hotel name and subscription tier for welcome preview
+      hotelName = data.hotel_name || 'Hotel';
+      subscriptionTier = data.subscription_tier || 'free';
+
+      for (const [k, v] of Object.entries(data)) {
+        const el = form.elements[k];
+        if (!el) continue;
+        if (el.type === 'checkbox') {
+          // use_llm_agent is always true
+          // Service toggles default to true if not set
+          if (k === 'use_llm_agent') {
+            el.checked = true;
+          } else if (k.startsWith('allow_') || k.startsWith('hk_')) {
+            // Service settings default to true if undefined
+            el.checked = v !== false;
+          } else if (k === 'qr_session_expiry_enabled') {
+            // Default to true (enabled) — security best practice
+            el.checked = v !== false;
+          } else {
+            el.checked = !!v;
+          }
+        }
+        else if (el.name === 'guest_languages' && Array.isArray(v)) el.value = v.join(',');
+        else if (el.name === 'custom_knowledge_text') el.value = v || '';
+        else el.value = v ?? '';
+      }
+      // Hide bilingual option if hotel language is English
+      updateBilingualVisibility(data.staff_language || data.interface_language);
+      // Hide bilingual for PRO tier (templates use hotel language, not phone prefix)
+      // Hide tone selector for PRO tier (WhatsApp Template is fixed)
+      if (data.subscription_tier === 'pro') {
+        const bilingualContainer = document.getElementById('bilingualWelcomeContainer');
+        if (bilingualContainer) bilingualContainer.style.display = 'none';
+        const toneContainer = document.getElementById('toneSelect')?.closest('.col-md-4');
+        if (toneContainer) toneContainer.style.display = 'none';
+      }
+      // Update service toggles visibility
+      updateServiceVisibility();
+      // Update welcome preview with hotel name
+      updateWelcomePreview();
+    }
+    function updateBilingualVisibility(lang) {
+      const container = document.getElementById('bilingualWelcomeContainer');
+      if (container) {
+        container.style.display = (lang === 'en') ? 'none' : 'block';
+      }
+    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {};
+      for (const el of form.elements) {
+        if (!el.name) continue;
+        if (el.type === 'checkbox') {
+          // use_llm_agent is always true, others save actual state
+          payload[el.name] = (el.name === 'use_llm_agent') ? true : el.checked;
+          continue;
+        }
+        else if (el.name === 'guest_languages') payload[el.name] = el.value ? el.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+        else if (el.type === 'number') payload[el.name] = el.value ? parseInt(el.value) : null;
+        else payload[el.name] = el.value;
+      }
+      // Always keep guest language detection in auto mode.
+      payload.guest_languages = ["auto"];
+      const res = await fetch('/api/admin/ai-settings', {
+        method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) showAlert(I18N.t('save_success')); else showAlert(I18N.t('save_error'), 'danger');
+    });
+
+    document.getElementById("tasksLinkSidebar").href = "/ui/admin/tasks" + authQuery();
+    document.getElementById("conversationsLinkSidebar").href = "/ui/admin/conversations" + authQuery();
+    document.getElementById("integrationsLinkSidebar").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("helpLinkSidebar").href = "/ui/admin/help" + authQuery();
+    setupFileInput('kbFile', 'kbFileTrigger', 'kbFileName');
+    setupFileInput('productsFile', 'productsFileTrigger', 'productsFileName');
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const f = document.getElementById("kbFile").files[0];
+      if (!f) { showAlert(I18N.t('ai_upload_select_file'), "warning"); return; }
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/admin/ai-settings/upload-knowledge", {
+        method: "POST",
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: fd
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showAlert(I18N.t('ai_upload_processed'));
+        form.elements["custom_knowledge_text"].value = data.extracted_text || "";
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+        showAlert(err.detail || I18N.t('ai_upload_failed'), "danger");
+      }
+    });
+
+    document.getElementById("uploadProductsBtn").addEventListener("click", async () => {
+      const f = document.getElementById("productsFile").files[0];
+      if (!f) { showAlert(I18N.t('ai_upload_select_file'), "warning"); return; }
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/admin/ai-settings/upload-products", {
+        method: "POST",
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: fd
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showAlert(I18N.t('ai_menu_upload_success'));
+        form.elements["hotel_products_text"].value = data.extracted_text || "";
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+        showAlert(err.detail || I18N.t('ai_upload_failed'), "danger");
+      }
+    });
+
+    // Initialize language selector
+    I18N.initSelect('lang-select');
+
+    // Service toggles visibility
+    function updateServiceVisibility() {
+      const hkEnabled = document.getElementById('allowHousekeeping').checked;
+      const fbEnabled = document.getElementById('allowFoodBeverage').checked;
+
+      // Show/hide housekeeping sub-options
+      const hkSubOptions = document.getElementById('housekeepingSubOptions');
+      if (hkSubOptions) {
+        hkSubOptions.style.display = hkEnabled ? '' : 'none';
+      }
+
+      // Show/hide F&B menu section
+      const fbMenu = document.getElementById('foodBeverageMenu');
+      if (fbMenu) {
+        fbMenu.style.display = fbEnabled ? '' : 'none';
+      }
+    }
+
+    // Attach event listeners for service toggles
+    document.getElementById('allowHousekeeping')?.addEventListener('change', updateServiceVisibility);
+    document.getElementById('allowFoodBeverage')?.addEventListener('change', updateServiceVisibility);
+
+    // Session expiry visibility
+    function updateSessionExpiryVisibility() {
+      const enabled = document.getElementById('qrSessionExpiry')?.checked;
+      const options = document.getElementById('qrSessionOptions');
+      if (options) {
+        options.style.display = enabled ? '' : 'none';
+      }
+    }
+
+    document.getElementById('qrSessionExpiry')?.addEventListener('change', updateSessionExpiryVisibility);
+
+    // Initialize visibility on page load
+    setTimeout(updateServiceVisibility, 100);
+    setTimeout(updateSessionExpiryVisibility, 100);
+
+    // Welcome message templates (must match jobs.py)
+    const WELCOME_TEMPLATES = {
+      friendly: {
+        en: "Hey! 👋 I'm AI Hotel Suite from {hotel_name}! You're in room {room}. I can help with WiFi, breakfast, parking, housekeeping and more! 😊 What can I help you with?"
+      },
+      professional: {
+        en: "Good day, I'm AI Hotel Suite, the virtual assistant of {hotel_name}. You are connected to room {room}. I can assist you with: WiFi information, breakfast schedule, check-in/check-out times, parking, housekeeping, or other requests. How may I be of service?"
+      }
+    };
+
+    // Room placeholder translations
+    const ROOM_PLACEHOLDER = {
+      en: '[Room]'
+    };
+
+    // PRO tier: Guest name placeholder translations
+    const GUEST_NAME_PLACEHOLDER = {
+      en: '[Guest Name]'
+    };
+
+    // PRO tier: Hotel name placeholder translations
+    const HOTEL_NAME_PLACEHOLDER = {
+      en: '[Hotel Name]'
+    };
+
+    // PRO tier templates (WhatsApp Template - fixed, no tone variation)
+    const WELCOME_TEMPLATES_PRO = {
+      en: "Good day, {guest_name}!\n\nI'm AI Hotel Suite, the virtual assistant of {hotel_name}. Welcome!\n\nYou are checked into room {room}.\n\nI'm available around the clock for hotel information, room requests, orders, or any other needs during your stay."
+    };
+
+    // Update welcome preview based on tone and subscription tier
+    function updateWelcomePreview() {
+      const tone = document.getElementById('toneSelect')?.value || 'professional';
+      const lang = document.getElementById('lang-select')?.value || 'en';
+      const preview = document.getElementById('welcomePreview');
+      if (!preview) return;
+
+      const roomPlaceholder = ROOM_PLACEHOLDER[lang] || ROOM_PLACEHOLDER.en;
+
+      // PRO tier: Fixed WhatsApp Template (no tone variation, 3 variables)
+      if (subscriptionTier === 'pro') {
+        let template = WELCOME_TEMPLATES_PRO[lang] || WELCOME_TEMPLATES_PRO.en;
+
+        // Replace with translated placeholders (all 3 are variables for PRO)
+        const guestPlaceholder = GUEST_NAME_PLACEHOLDER[lang] || GUEST_NAME_PLACEHOLDER.en;
+        const hotelPlaceholder = HOTEL_NAME_PLACEHOLDER[lang] || HOTEL_NAME_PLACEHOLDER.en;
+
+        template = template.replace('{guest_name}', `<strong>${guestPlaceholder}</strong>`);
+        template = template.replace('{hotel_name}', `<strong>${hotelPlaceholder}</strong>`);
+        template = template.replace('{room}', `<strong>${roomPlaceholder}</strong>`);
+
+        // Convert newlines to <br> for HTML display
+        preview.innerHTML = template.replace(/\n/g, '<br>');
+        return;
+      }
+
+      // FREE/BASIC tier: Tone-based templates (2 variables)
+      const templates = WELCOME_TEMPLATES[tone] || WELCOME_TEMPLATES.professional;
+      let template = templates[lang] || templates.en;
+
+      // Replace placeholders - use actual hotel name, translated room placeholder
+      template = template.replace('{hotel_name}', `<strong>${hotelName}</strong>`);
+      template = template.replace('{room}', `<strong>${roomPlaceholder}</strong>`);
+
+      preview.innerHTML = template;
+    }
+
+    // Show/hide bilingual section based on language
+    function updateBilingualVisibility() {
+      const lang = document.getElementById('lang-select').value;
+      const container = document.getElementById('bilingualWelcomeContainer');
+      const hint = container ? container.nextElementSibling : null;
+      if (lang === 'en') {
+        if (container) container.style.display = 'none';
+        if (hint) hint.style.display = 'none';
+      } else {
+        if (container) container.style.display = '';
+        if (hint) hint.style.display = '';
+      }
+    }
+
+    // Update preview and bilingual visibility on language change
+    document.getElementById('lang-select').addEventListener('change', () => {
+      setTimeout(() => {
+        updateWelcomePreview();
+        updateBilingualVisibility();
+      }, 100);
+    });
+
+    // Update preview when tone changes
+    document.getElementById('toneSelect')?.addEventListener('change', updateWelcomePreview);
+
+    loadSettings();
+
+    // Initialize preview after settings load
+    setTimeout(updateWelcomePreview, 200);
+  </script>
+
+  <div id="notificationToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+
+  {% include 'admin/change_password_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/admin-sidebar.js?v=2"></script>
+  <script src="/static/js/notifications.js"></script>
+  <script src="/static/js/subscription.js"></script>
+  <script>
+    // Initialize preview and bilingual visibility after bootstrap loads
+    updateWelcomePreview();
+    updateBilingualVisibility();
+
+    // Clear knowledge base button
+    document.getElementById('clearKnowledgeBtn')?.addEventListener('click', () => {
+      if (confirm(I18N.t('confirm_clear') || 'Are you sure you want to clear this?')) {
+        document.querySelector('textarea[name="custom_knowledge_text"]').value = '';
+        showAlert(I18N.t('cleared_success') || 'Cleared successfully');
+      }
+    });
+
+    // Clear products/menu button
+    document.getElementById('clearProductsBtn')?.addEventListener('click', () => {
+      if (confirm(I18N.t('confirm_clear') || 'Are you sure you want to clear this?')) {
+        document.querySelector('textarea[name="hotel_products_text"]').value = '';
+        showAlert(I18N.t('cleared_success') || 'Cleared successfully');
+      }
+    });
+
+    // Hide PRO upgrade button for Thailand (PMS not available for LINE yet)
+    function hideProButtonForThailand() {
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      if (hotelCountry === 'TH') {
+        document.querySelectorAll('a[href*="/upgrade-pro"]').forEach(btn => {
+          btn.style.display = 'none';
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', hideProButtonForThailand);
+  </script>
+</body>
+
+</html>

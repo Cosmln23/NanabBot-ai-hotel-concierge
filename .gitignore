@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables (CONFIDENTIAL)
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Redis
+dump.rdb
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+/tmp/
+*.tmp
+/create_*.py
+/check_*.py
+/debug_*.py
+/fix_*.py
+/test_*.py
+/trigger_*.py
+/verify_*.py
+/rerun_*.py
+
+# Scripts used for testing (not part of production)
+create_demo_staff.py
+create_journey.py
+
+# External dependencies
+pgvector/
+
+# Debug SQL files
+debug_*.sql
+fix_*.sql
+quick_check.sql
+
+# Mock data with PII
+mock_pms_data.json
+
+# Large/unnecessary files
+*.mp4
+=2.0
+/task_*.py
+
+# Node modules in subdirectories
+**/node_modules/
+
+# Backup files
+*.backup
+*.bak
+
+# Environment backups
+.env.backup

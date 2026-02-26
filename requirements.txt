@@ -1,0 +1,27 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0
+alembic
+psycopg2-binary
+pydantic>=2.0,<3.0
+pydantic-settings>=2.0
+python-dotenv
+redis
+rq
+pgvector
+bcrypt
+cryptography>=41.0.0
+PyJWT
+openai
+pypdf  # Was PyPDF2, aligning with imports
+pytest
+pytest-asyncio
+requests
+twilio
+email-validator
+line-bot-sdk>=3.12.0  # Latest version with pydantic v2 support
+resend
+stripe
+jinja2
+python-multipart
+sentry-sdk[fastapi]

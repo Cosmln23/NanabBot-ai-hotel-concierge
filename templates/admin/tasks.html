@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  {% include 'admin/layout_head.html' %}
+  <title>Admin - Tasks</title>
+  <style>
+    /* Restore Task Priority Colors */
+    .badge.bg-success,
+    .btn-outline-success {
+      background-color: #10b981 !important;
+      /* Emerald 500 */
+      color: white !important;
+      border-color: #10b981 !important;
+    }
+
+    .badge.bg-success.bg-opacity-25 {
+      background-color: rgba(16, 185, 129, 0.25) !important;
+      color: #065f46 !important;
+      /* Emerald 800 */
+    }
+
+    .badge.bg-warning,
+    .btn-outline-warning {
+      background-color: #f59e0b !important;
+      /* Amber 500 */
+      color: white !important;
+      border-color: #f59e0b !important;
+    }
+
+    .btn-outline-success:hover {
+      background-color: #059669 !important;
+      color: white !important;
+    }
+
+    .btn-outline-warning:hover {
+      background-color: #d97706 !important;
+      color: white !important;
+    }
+
+    /* Global Background Image for Admin Dashboard */
+    .main-content {
+      background-image: linear-gradient(rgba(250, 250, 249, 0.75), rgba(250, 250, 249, 0.75)), url('/static/pexels-knownasovan-62693.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <a href="/ui/admin/tasks" class="d-flex align-items-center gap-2 text-decoration-none text-white">
+            <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+            <span class="fs-4 fw-bold">AI Hotel Suite</span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav d-flex flex-column">
+        <a href="#" class="nav-item active">
+          <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_tasks">Tasks</span>
+        </a>
+        <a href="#" id="conversationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-comments"></i> <span data-i18n="nav_conversations">Conversations</span>
+        </a>
+        <div class="flex-grow-1"></div>
+        <hr class="my-2 text-muted opacity-50">
+        <a href="#" id="aiSettingsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-brain"></i> <span data-i18n="nav_ai_settings">AI Settings</span>
+        </a>
+        <a href="#" id="integrationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-plug"></i> <span data-i18n="nav_integrations">Integrations</span>
+        </a>
+        <a href="#" id="subscriptionLinkSidebar" class="nav-item d-none">
+          <i class="fa-solid fa-credit-card"></i> <span data-i18n="nav_subscription">Subscription</span>
+        </a>
+        <a href="#" id="helpLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-circle-question"></i> <span data-i18n="nav_help">Help</span>
+        </a>
+      </nav>
+      {% include 'admin/sidebar_footer.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Trial Banner -->
+      <div id="trialBanner" class="alert alert-warning d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <span data-i18n="trial_banner_text">Trial:</span>
+            <strong id="trialDaysLeft">0</strong>
+            <span data-i18n="trial_days_remaining">days remaining</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-dark btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- Trial Expired Banner -->
+      <div id="trialExpiredBanner" class="alert alert-danger d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span data-i18n="trial_expired_text">Trial expired! Your bot is stopped. Upgrade to continue.</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-danger btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1" data-i18n="title_tasks">Tasks Overview</h2>
+          <p class="text-muted mb-0" data-i18n="subtitle_tasks">Manage and track hotel staff requests.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary position-relative" id="notificationBell"
+            data-i18n-title="notif_label" aria-label="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="notificationMute"
+            data-i18n-title="notif_sound_on" aria-label="Sound">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+          <select id="lang-select" class="form-select form-select-sm lang-select-sm">
+            <option value="en" data-i18n="lang_en">🇬🇧 English</option>
+            <option value="ro" data-i18n="lang_ro">🇷🇴 Română</option>
+            <option value="th" data-i18n="lang_th">🇹🇭 ไทย</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <!-- Red Zone -->
+          <div id="critical-zone" class="mb-4" style="display:none;">
+            <div class="p-3 rounded border border-danger bg-danger bg-opacity-10">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center">
+                  <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>
+                  <h6 class="m-0 text-danger fw-bold" data-i18n="critical_title">Critical Alerts</h6>
+                </div>
+                <div class="critical-summary text-danger small opacity-75"></div>
+              </div>
+              <div id="critical-list" class="critical-scroll d-grid gap-2" style="max-height: 260px; overflow-y: auto;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="d-flex flex-wrap gap-2 mb-3" id="task-tabs">
+            <button class="btn btn-sm btn-outline-secondary active" data-tab="ALL" data-i18n="tab_all">All</button>
+            <button class="btn btn-sm btn-outline-secondary" data-tab="HOUSEKEEPING"
+              data-i18n="tab_housekeeping">Housekeeping</button>
+            <button class="btn btn-sm btn-outline-secondary" data-tab="MAINTENANCE"
+              data-i18n="tab_maintenance">Maintenance</button>
+            <button class="btn btn-sm btn-outline-secondary" data-tab="FRONTDESK" data-i18n="tab_frontdesk">Front
+              Desk</button>
+          </div>
+
+          <!-- Priority Filter -->
+          <div class="d-flex flex-wrap gap-2 mb-3" id="priority-tabs">
+            <button class="btn btn-sm btn-outline-secondary active" data-priority="ALL" data-i18n="priority_all">All
+              Priorities</button>
+            <button class="btn btn-sm btn-outline-danger" data-priority="CRITICAL"
+              data-i18n="priority_critical">Critical</button>
+            <button class="btn btn-sm btn-outline-warning" data-priority="URGENT"
+              data-i18n="priority_urgent">Urgent</button>
+            <button class="btn btn-sm btn-outline-success" data-priority="NORMAL"
+              data-i18n="priority_normal">Normal</button>
+          </div>
+
+          <!-- Smart Filter Bar -->
+          <div class="row g-2 mb-3">
+            <div class="col-12 col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-end-0"><i
+                    class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" id="filter-search" class="form-control bg-white border-start-0"
+                  placeholder="Search summary..." data-i18n-placeholder="filter_search_ph">
+              </div>
+            </div>
+            <div class="col-6 col-md-4 position-relative">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white" data-i18n="label_room">Room</span>
+                <input type="text" id="filter-room" class="form-control bg-white" placeholder="e.g., 716"
+                  data-i18n-placeholder="filter_room_ph" autocomplete="off">
+              </div>
+              <div id="room-popover" class="position-absolute bg-white border rounded shadow-sm mt-1 p-2"
+                style="display:none; z-index:20; width:100%; max-height:220px; overflow:hidden;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted" data-i18n="rooms_label">Rooms</small>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-light" id="room-prev">&lt;</button>
+                    <button type="button" class="btn btn-light" id="room-next">&gt;</button>
+                  </div>
+                </div>
+                <div id="room-options" class="d-grid gap-1" style="max-height:160px; overflow-y:auto;"></div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <select id="filter-status" class="form-select form-select-sm bg-light">
+                <option value="" data-i18n="status_all">All Statuses</option>
+                <option value="OPEN" data-i18n="status_open">OPEN</option>
+                <option value="IN_PROGRESS" data-i18n="status_inprog">IN_PROGRESS</option>
+                <option value="DONE" data-i18n="status_done">DONE</option>
+                <option value="CANCELLED" data-i18n="status_cancelled">CANCELLED</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cards List -->
+          <div id="tasks-cards" class="d-grid gap-3"></div>
+          <div id="empty-state" class="text-center text-muted py-4" style="display:none;" data-i18n="empty">No tasks
+            found</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div id="notificationToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+
+  {% include 'admin/change_password_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/admin-sidebar.js?v=2"></script>
+  <script src="/static/js/notifications.js"></script>
+  <script>
+    const tokenKey = "token";
+    const urlToken = new URLSearchParams(window.location.search).get("token");
+    if (urlToken) localStorage.setItem(tokenKey, urlToken);
+
+    function getToken() {
+      return localStorage.getItem(tokenKey);
+    }
+
+    function handleUnauthorized() {
+      localStorage.removeItem(tokenKey);
+      document.cookie = "admin_token=; Max-Age=0; path=/";
+      window.location = "/ui/admin/login";
+    }
+
+    function authQuery() {
+      const t = getToken();
+      return t ? `?token=${encodeURIComponent(t)}` : "";
+    }
+
+    function timeAgo(dateStr) {
+      if (!dateStr) return "";
+      const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+      if (diff < 60) {
+        const n = Math.floor(diff);
+        return (I18N.t('time_ago_seconds') || "{n}s ago").replace("{n}", n);
+      }
+      if (diff < 3600) {
+        const n = Math.floor(diff / 60);
+        return (I18N.t('time_ago_minutes') || "{n}m ago").replace("{n}", n);
+      }
+      if (diff < 86400) {
+        const n = Math.floor(diff / 3600);
+        return (I18N.t('time_ago_hours') || "{n}h ago").replace("{n}", n);
+      }
+      const n = Math.floor(diff / 86400);
+      return (I18N.t('time_ago_days') || "{n}d ago").replace("{n}", n);
+    }
+
+    async function markDone(id) {
+      const token = getToken();
+      if (!token) return handleUnauthorized();
+      const resp = await fetch(`/admin/tasks/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify("DONE")
+      });
+      if (!resp.ok) return handleUnauthorized();
+      setTimeout(loadTasks, 300);
+    }
+
+    function extractRoom(row) {
+      if (row.room_number) return row.room_number;
+      const p = row.payload_json || {};
+      if (p.room_number) return p.room_number;
+      if (p.room) return p.room;
+      const summary = row.staff_summary || (p.summary) || "";
+      const match = summary.match(/Room\s+(\d+)/i);
+      if (match) return match[1];
+      return "Gen";
+    }
+
+    // Room popover pagination state
+    let roomPage = 0;
+    const roomsPerPage = 6;
+    let roomOptions = [];
+
+    function buildRoomOptions(data) {
+      const rooms = [];
+      data.forEach(t => {
+        const r = extractRoom(t);
+        if (r && r !== "Gen" && !rooms.includes(r)) rooms.push(r);
+      });
+      rooms.sort((a, b) => a.toString().localeCompare(b.toString(), undefined, { numeric: true }));
+      roomOptions = rooms;
+      roomPage = 0;
+      renderRoomPopover();
+    }
+
+    function renderRoomPopover() {
+      const pop = document.getElementById('room-popover');
+      const list = document.getElementById('room-options');
+      if (!roomOptions.length) { pop.style.display = 'none'; return; }
+      list.innerHTML = "";
+      const start = roomPage * roomsPerPage;
+      const slice = roomOptions.slice(start, start + roomsPerPage);
+      slice.forEach(r => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light text-start';
+        btn.textContent = r;
+        btn.addEventListener('click', () => {
+          document.getElementById('filter-room').value = r;
+          pop.style.display = 'none';
+          loadTasks();
+        });
+        list.appendChild(btn);
+      });
+      document.getElementById('room-prev').disabled = roomPage === 0;
+      document.getElementById('room-next').disabled = (start + roomsPerPage) >= roomOptions.length;
+    }
+
+    function renderCards(data) {
+      const criticalZone = document.getElementById("critical-zone");
+      const criticalList = document.getElementById("critical-list");
+      const criticalScroll = criticalZone.querySelector('.critical-scroll');
+      const cards = document.getElementById("tasks-cards");
+      const empty = document.getElementById("empty-state");
+      cards.innerHTML = "";
+      criticalList.innerHTML = "";
+      if (criticalScroll) criticalScroll.innerHTML = "";
+
+      const critical = data.filter(t => (t.priority || "").toUpperCase() === "CRITICAL" && (t.status || "").toUpperCase() === "OPEN");
+      if (critical.length) {
+        criticalZone.style.display = "block";
+        const doneCritical = data.filter(t => (t.priority || "").toUpperCase() === "CRITICAL" && (t.status || "").toUpperCase() !== "OPEN").length;
+        const header = criticalZone.querySelector('.critical-summary');
+        if (header) {
+          header.textContent = `${critical.length} ${I18N.t('critical_active_label')} | ${doneCritical} ${I18N.t('critical_completed_label')}`;
+        }
+        const listWrapper = criticalZone.querySelector('.critical-scroll');
+        critical.forEach(row => {
+          const room = extractRoom(row);
+          const summary = row.staff_summary || (row.payload_json && row.payload_json.summary) || row.type;
+          const status = (row.status || "").toUpperCase();
+          const created = timeAgo(row.created_at);
+          const badge = `<span class="badge bg-danger text-white">${I18N.t('priority_critical')}</span>`;
+          const actionBtn = status === "DONE"
+            ? `<span class="badge bg-secondary">${I18N.t('completed')}</span>`
+            : `<button class="btn btn-sm btn-light border" onclick="markDone(${row.id})">${I18N.t('mark_done')}</button>`;
+          const div = document.createElement("div");
+          div.className = "p-3 bg-white rounded border border-danger d-flex justify-content-between align-items-center";
+          div.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+              <div class="fw-bold fs-5 text-danger">${I18N.t('conv_room')} ${room}</div>
+              <div>
+                <div class="fw-semibold">${summary}</div>
+                <div class="text-muted small">${badge} • ${created}</div>
+              </div>
+            </div>
+            <div>${actionBtn}</div>`;
+          listWrapper.appendChild(div);
+        });
+      } else {
+        criticalZone.style.display = "none";
+      }
+
+      const activeTab = document.querySelector('#task-tabs button.active')?.dataset.tab || 'ALL';
+      const activePriority = document.querySelector('#priority-tabs button.active')?.dataset.priority || 'ALL';
+      const filtered = data
+        .filter(t => !((t.priority || "").toUpperCase() === "CRITICAL" && (t.status || "").toUpperCase() === "OPEN"))
+        .filter(t => {
+          const type = (t.type || "").toUpperCase();
+          if (activeTab === 'HOUSEKEEPING') return type === 'HOUSEKEEPING';
+          if (activeTab === 'MAINTENANCE') return type === 'MAINTENANCE';
+          if (activeTab === 'FRONTDESK') return type === 'LOST_AND_FOUND' || type === 'OTHER';
+          return true;
+        })
+        .filter(t => {
+          const priority = (t.priority || "NORMAL").toUpperCase();
+          if (activePriority === 'CRITICAL') return priority === 'CRITICAL';
+          if (activePriority === 'URGENT') return priority === 'URGENT';
+          if (activePriority === 'NORMAL') return priority === 'NORMAL';
+          return true;
+        });
+
+      // apply smart filters
+      const searchVal = (document.getElementById('filter-search').value || "").toLowerCase();
+      const roomVal = (document.getElementById('filter-room').value || "").trim();
+      const statusVal = (document.getElementById('filter-status').value || "").toUpperCase();
+
+      const postFiltered = filtered.filter(t => {
+        const summary = (t.staff_summary || (t.payload_json && t.payload_json.summary) || "").toLowerCase();
+        const room = extractRoom(t).toString();
+        const status = (t.status || "").toUpperCase();
+        const matchesSearch = searchVal ? summary.includes(searchVal) : true;
+        const matchesRoom = roomVal ? room.includes(roomVal) : true;
+        const matchesStatus = statusVal ? status === statusVal : true;
+        return matchesSearch && matchesRoom && matchesStatus;
+      });
+
+      if (!filtered.length) {
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+
+      postFiltered.forEach(row => {
+        const room = extractRoom(row);
+        const summaryText = row.staff_summary || (row.payload_json && row.payload_json.summary) || row.type;
+        const created = timeAgo(row.created_at);
+        const status = (row.status || "").toUpperCase();
+        const priority = (row.priority || "").toUpperCase();
+
+        let badge = `<span class="badge bg-success bg-opacity-25 text-success">${I18N.t('priority_normal')}</span>`;
+        if (priority === 'URGENT') badge = `<span class="badge bg-warning text-white">${I18N.t('priority_urgent')}</span>`;
+        if (priority === 'CRITICAL') badge = `<span class="badge bg-danger text-white">${I18N.t('priority_critical')}</span>`;
+
+        const actionBtn = status === "DONE"
+          ? `<span class="badge bg-secondary">${I18N.t('completed')}</span>`
+          : `<button class="btn btn-sm btn-primary" onclick="markDone(${row.id})">${I18N.t('mark_done')}</button>`;
+
+        const card = document.createElement("div");
+        card.className = "p-3 border rounded d-flex align-items-center justify-content-between shadow-sm bg-white";
+        card.innerHTML = `
+          <div class="d-flex align-items-center gap-3">
+            <div class="fw-bold fs-4 text-primary">${I18N.t('conv_room')} ${room}</div>
+            <div>
+              <div class="fw-semibold task-summary-safe"></div>
+              <div class="text-muted small">${badge} • ${created}</div>
+            </div>
+          </div>
+          <div>${actionBtn}</div>
+        `;
+
+        // ✅ SAFE: Set user content via textContent (escapes HTML automatically)
+        const summaryDiv = card.querySelector('.task-summary-safe');
+        summaryDiv.textContent = summaryText;
+
+        cards.appendChild(card);
+      });
+    }
+
+    async function loadTasks() {
+      const token = getToken();
+      if (!token) return handleUnauthorized();
+
+      document.getElementById("tasks-cards").innerHTML = `<div class='text-center text-muted py-3'>${I18N.t('loading')}</div>`;
+
+      const resp = await fetch("/admin/tasks", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!resp.ok) return handleUnauthorized();
+      const data = await resp.json();
+      buildRoomOptions(data || []);
+      renderCards(data || []);
+    }
+    window.loadTasks = loadTasks;
+
+    document.querySelectorAll('#task-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#task-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadTasks();
+      });
+    });
+
+    document.querySelectorAll('#priority-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#priority-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadTasks();
+      });
+    });
+
+    // Filters change handlers
+    document.getElementById('filter-search').addEventListener('input', () => loadTasks());
+    document.getElementById('filter-room').addEventListener('input', () => {
+      roomPage = 0;
+      loadTasks();
+    });
+    document.getElementById('filter-room').addEventListener('focus', () => {
+      const pop = document.getElementById('room-popover');
+      if (roomOptions.length) pop.style.display = 'block';
+    });
+    document.getElementById('filter-status').addEventListener('change', () => loadTasks());
+    document.getElementById('room-prev').addEventListener('click', () => {
+      if (roomPage > 0) {
+        roomPage -= 1;
+        renderRoomPopover();
+      }
+    });
+    document.getElementById('room-next').addEventListener('click', () => {
+      const maxPage = Math.floor((roomOptions.length - 1) / roomsPerPage);
+      if (roomPage < maxPage) {
+        roomPage += 1;
+        renderRoomPopover();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      const pop = document.getElementById('room-popover');
+      const roomInput = document.getElementById('filter-room');
+      if (!pop || !roomInput) return;
+      if (!pop.contains(e.target) && e.target !== roomInput) {
+        pop.style.display = 'none';
+      }
+    });
+
+    document.getElementById("conversationsLinkSidebar").href = "/ui/admin/conversations" + authQuery();
+    document.getElementById("aiSettingsLinkSidebar").href = "/ui/admin/settings/ai" + authQuery();
+    document.getElementById("integrationsLinkSidebar").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("helpLinkSidebar").href = "/ui/admin/help" + authQuery();
+
+    // Subscription management - opens Stripe Customer Portal
+    document.getElementById("subscriptionLinkSidebar").addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        const resp = await fetch("/api/stripe/customer-portal", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${getToken()}` }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          window.location.href = data.portal_url;
+        } else {
+          console.error("Failed to open customer portal");
+        }
+      } catch (err) {
+        console.error("Error opening customer portal:", err);
+      }
+    });
+
+    // Initialize language selector
+    I18N.initSelect('lang-select');
+
+    // Reload tasks when language changes
+    window.addEventListener('languageChanged', () => {
+      loadTasks();
+    });
+
+    // Load subscription status for trial banner
+    async function loadSubscriptionStatus() {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const resp = await fetch("/admin/subscription-status", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        const trialBanner = document.getElementById("trialBanner");
+        const expiredBanner = document.getElementById("trialExpiredBanner");
+        const daysLeftEl = document.getElementById("trialDaysLeft");
+
+        // Hide both banners initially
+        if (trialBanner) trialBanner.classList.add("d-none");
+        if (expiredBanner) expiredBanner.classList.add("d-none");
+
+        // Show appropriate banner based on subscription status
+        const aiSettingsLink = document.getElementById("aiSettingsLinkSidebar");
+        const integrationsLink = document.getElementById("integrationsLinkSidebar");
+
+        const subscriptionLink = document.getElementById("subscriptionLinkSidebar");
+
+        if (data.tier === "free") {
+          if (data.is_expired) {
+            // Trial expired - show red banner
+            if (expiredBanner) expiredBanner.classList.remove("d-none");
+            // Block AI Settings and Integrations
+            if (aiSettingsLink) {
+              aiSettingsLink.classList.add("disabled", "text-muted");
+              aiSettingsLink.style.pointerEvents = "none";
+              aiSettingsLink.innerHTML = '<i class="fa-solid fa-lock"></i> <span data-i18n="nav_ai_settings">AI Settings</span>';
+            }
+            if (integrationsLink) {
+              integrationsLink.classList.add("disabled", "text-muted");
+              integrationsLink.style.pointerEvents = "none";
+              integrationsLink.innerHTML = '<i class="fa-solid fa-lock"></i> <span data-i18n="nav_integrations">Integrations</span>';
+            }
+          } else if (data.days_remaining !== null) {
+            // Trial active - show yellow banner with days remaining
+            if (trialBanner) trialBanner.classList.remove("d-none");
+            if (daysLeftEl) daysLeftEl.textContent = data.days_remaining;
+          }
+        } else if (data.tier === "basic" || data.tier === "pro") {
+          // Show subscription management link for paying customers
+          if (subscriptionLink) {
+            subscriptionLink.classList.remove("d-none");
+          }
+        }
+        // For basic/pro tiers, no banner is shown
+      } catch (err) {
+        console.error("Failed to load subscription status:", err);
+      }
+    }
+
+    loadSubscriptionStatus();
+    loadTasks();
+    setInterval(loadTasks, 40000);
+
+    // Hide PRO upgrade button for Thailand (PMS not available for LINE yet)
+    function hideProButtonForThailand() {
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      if (hotelCountry === 'TH') {
+        document.querySelectorAll('a[href*="/upgrade-pro"]').forEach(btn => {
+          btn.style.display = 'none';
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', hideProButtonForThailand);
+  </script>
+</body>
+
+</html>

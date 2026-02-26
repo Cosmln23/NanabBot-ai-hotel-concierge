@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% include 'admin/layout_head.html' %}
+  <title>Integrations</title>
+  <style>
+    .room-qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .room-qr-card {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .room-qr-card canvas {
+      width: 150px;
+      height: 150px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #roomQrSection,
+      #roomQrSection * {
+        visibility: visible !important;
+      }
+
+      #roomQrSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Protected content overlay */
+    .protected-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .protected-overlay .lock-icon {
+      font-size: 64px;
+      color: #6c757d;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Protected Content Overlay - shown until password verified -->
+  <div id="protectedOverlay" class="protected-overlay">
+    <div class="text-center">
+      <i class="fa-solid fa-lock lock-icon"></i>
+      <p class="mt-3 text-muted" data-i18n="int_protected_page">This page is protected</p>
+    </div>
+  </div>
+  <div class="app-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <a href="/ui/admin/tasks" class="d-flex align-items-center gap-2 text-decoration-none text-white">
+            <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+            <span class="fs-4 fw-bold">AI Hotel Suite</span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav d-flex flex-column">
+        <a href="#" id="tasksLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_tasks">Tasks</span>
+        </a>
+        <a href="#" id="conversationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-comments"></i> <span data-i18n="nav_conversations">Conversations</span>
+        </a>
+        <div class="flex-grow-1"></div>
+        <hr class="my-2 text-muted opacity-50">
+        <a href="#" id="aiSettingsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-brain"></i> <span data-i18n="nav_ai_settings">AI Settings</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fa-solid fa-plug"></i> <span data-i18n="nav_integrations">Integrations</span>
+        </a>
+        <a href="#" id="subscriptionLinkSidebar" class="nav-item d-none">
+          <i class="fa-solid fa-credit-card"></i> <span data-i18n="nav_subscription">Subscription</span>
+        </a>
+        <a href="#" id="helpLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-circle-question"></i> <span data-i18n="nav_help">Help</span>
+        </a>
+      </nav>
+      {% include 'admin/sidebar_footer.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Trial Banner -->
+      <div id="trialBanner" class="alert alert-warning d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <span data-i18n="trial_banner_text">Trial:</span>
+            <strong id="trialDaysLeft">0</strong>
+            <span data-i18n="trial_days_remaining">days remaining</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-dark btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial Expired Banner -->
+      <div id="trialExpiredBanner" class="alert alert-danger d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span data-i18n="trial_expired_text">Trial expired! Your bot is stopped. Upgrade to continue.</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-danger btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="mb-0" data-i18n="integrations_title">Integrations</h4>
+          <p class="text-muted small mb-0" data-i18n="integrations_subtitle">Manage external connections and APIs.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary position-relative" id="notificationBell"
+            data-i18n-title="notif_label" aria-label="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="notificationMute"
+            data-i18n-title="notif_sound_on" aria-label="Sound">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+          <select id="lang-select" class="form-select form-select-sm lang-select-sm">
+            <option value="en" data-i18n="lang_en">🇬🇧 English</option>
+            <option value="ro" data-i18n="lang_ro">🇷🇴 Română</option>
+            <option value="th" data-i18n="lang_th">🇹🇭 ไทย</option>
+          </select>
+        </div>
+      </div>
+      <div id="alertBox" class="alert d-none" role="alert"></div>
+
+      <div class="row g-3">
+        <!-- PMS Card (Collapsible) -->
+        <div class="col-md-4">
+          <div class="card shadow-sm" id="cardPms">
+            <div class="card-body d-flex flex-column gap-3">
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div id="pmsIcon" class="rounded-circle d-flex align-items-center justify-content-center"
+                  style="width:48px;height:48px;background:#f0fdf4;">
+                  <i class="fa-solid fa-database fa-lg text-success"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <h5 class="mb-1" data-i18n="int_pms_section">PMS Configuration</h5>
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span id="pmsStatusBadge" class="badge bg-secondary" data-i18n="int_status_not_configured">Not
+                      configured</span>
+                    <span id="pmsLockBadge" class="badge bg-secondary d-none"><i class="fa-solid fa-lock me-1"></i><span
+                        data-i18n="int_locked">Locked</span></span>
+                    <span id="pmsProBadge" class="badge bg-warning text-white d-none"><i
+                        class="fa-solid fa-crown me-1"></i>PRO Only</span>
+                    <span id="pmsComingSoonBadge" class="badge bg-warning text-white d-none"><i
+                        class="fa-solid fa-clock me-1"></i><span data-i18n="int_pms_coming_soon">Coming
+                        Soon</span></span>
+                  </div>
+                  <div class="small text-muted mt-1" id="pmsDetails"></div>
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-secondary d-none" id="unlockPmsBtn"><i
+                    class="fa-solid fa-lock-open me-1"></i><span data-i18n="int_unlock">Unlock</span></button>
+                <button class="btn btn-primary" id="configurePmsBtn" data-needs-pro="true"><i
+                    class="fa-solid fa-gear me-1"></i><span data-i18n="int_configure">Configure</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messaging Provider Card -->
+        <div class="col-md-8">
+          <div class="card shadow-sm" id="cardMessaging">
+            <div class="card-body d-flex flex-column gap-3">
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div id="msgIcon" class="rounded-circle d-flex align-items-center justify-content-center"
+                  style="width:48px;height:48px;background:#eef2ff;">
+                  <i class="fa-brands fa-whatsapp fa-lg text-success"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <h5 class="mb-1" id="msgTitle" data-i18n="int_msg_section">Messaging Provider</h5>
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span id="msgStatusBadge" class="badge bg-secondary" data-i18n="loading_common">Loading</span>
+                    <span id="msgLockBadge" class="badge bg-secondary d-none"><i class="fa-solid fa-lock me-1"></i><span
+                        data-i18n="int_locked">Locked</span></span>
+                    <span class="small text-muted" id="msgSubtitle"></span>
+                  </div>
+                  <div class="small text-muted mt-1" id="msgDetails"></div>
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-secondary" id="unlockMsgBtn"><i
+                    class="fa-solid fa-lock-open me-1"></i><span data-i18n="int_unlock">Unlock</span></button>
+                <button class="btn btn-outline-secondary d-none" id="switchPlatformBtn"><i
+                    class="fa-solid fa-lock me-1"></i><span data-i18n="int_platform_default">Platform
+                    Default</span></button>
+                <button class="btn btn-primary" id="configureMsgBtn"><i class="fa-solid fa-gear me-1"></i><span
+                    data-i18n="int_configure">Configure</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-12">
+          <div class="card shadow-sm" id="roomQrSection">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 no-print">
+                <div>
+                  <h5 class="card-title mb-0" data-i18n="int_room_qr_title">Room QR Generator</h5>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <small class="text-muted" data-i18n="int_room_qr_subtitle">Generate room-specific QR codes.</small>
+                    <span id="roomQrLockBadge" class="badge bg-secondary d-none"><i
+                        class="fa-solid fa-lock me-1"></i><span data-i18n="int_locked">Locked</span></span>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn btn-outline-secondary btn-sm d-none" id="unlockRoomQrBtn">
+                    <i class="fa-solid fa-lock-open me-1"></i><span data-i18n="int_unlock">Unlock</span>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" id="roomQrPrintBtn">
+                    <i class="fa-solid fa-print me-1"></i><span data-i18n="int_room_qr_print">Print</span>
+                  </button>
+                </div>
+              </div>
+              <div id="roomQrAlert" class="alert d-none mt-3 mb-2 no-print" role="alert"></div>
+              <div id="roomQrProviderAlert" class="alert alert-info d-flex align-items-center gap-2 mt-3 mb-2 no-print"
+                role="alert">
+                <i id="roomQrProviderIcon" class="fa-brands fa-whatsapp fa-lg" style="color:#25D366;"></i>
+                <span id="roomQrProviderText" data-i18n="int_room_qr_whatsapp_hint">Guests scan QR code in room to start
+                  conversation with pre-filled room number.</span>
+              </div>
+              <div id="roomQrFormSection" class="d-none no-print">
+                <div class="d-flex flex-wrap gap-2 align-items-end mt-2">
+                  <div>
+                    <label class="form-label mb-1" data-i18n="int_room_qr_start">Start room</label>
+                    <input class="form-control" id="roomQrStart" type="number" min="1" placeholder="101"
+                      data-i18n-placeholder="int_room_qr_start_ph">
+                  </div>
+                  <div>
+                    <label class="form-label mb-1" data-i18n="int_room_qr_end">End room</label>
+                    <input class="form-control" id="roomQrEnd" type="number" min="1" placeholder="120"
+                      data-i18n-placeholder="int_room_qr_end_ph">
+                  </div>
+                  <button class="btn btn-primary align-self-end" id="roomQrGenerateBtn">
+                    <i class="fa-solid fa-bolt me-1"></i><span data-i18n="int_room_qr_generate">Generate</span>
+                  </button>
+                </div>
+                <small class="text-muted d-block mt-2" data-i18n="int_room_qr_hint">Print and place the correct QR in
+                  each room.</small>
+              </div>
+              <div id="roomQrGrid" class="room-qr-grid mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal for Messaging Configuration -->
+      <div class="modal fade" id="msgConfigModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" data-i18n="int_configure_messaging">Configure Messaging</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="msgModalAlert" class="alert d-none"></div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" data-i18n="int_provider">Provider</label>
+                <select id="msgProviderSelect" class="form-select">
+                  <option value="meta_custom">WhatsApp (Platform)</option>
+                  <option value="line">LINE (BYON)</option>
+                </select>
+              </div>
+              <div id="waConfigBox" class="border rounded p-3 mb-3 d-none">
+                <!-- WhatsApp Platform Status -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="fa-brands fa-whatsapp fa-lg" style="color:#25D366;"></i>
+                  <span class="fw-semibold">WhatsApp</span>
+                  <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Connected via Platform</span>
+                </div>
+                <!-- Coming Soon Notice for BYON -->
+                <div class="alert alert-info mb-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-rocket"></i>
+                    <strong data-i18n="int_wa_byon_coming_soon">Custom WhatsApp Integration: Coming Soon</strong>
+                  </div>
+                  <p class="mb-0 mt-2 small" data-i18n="int_wa_byon_coming_soon_desc">Currently using shared platform
+                    number. Bring Your Own Number (BYON) integration will be available in a future update.</p>
+                </div>
+                <!-- Hidden BYON Form (for future use) -->
+                <div id="waBYONForm" class="d-none">
+                  <h6 class="fw-semibold" data-i18n="int_whatsapp_credentials">WhatsApp Credentials</h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label" data-i18n="int_phone_id">Phone Number ID</label>
+                      <input type="text" class="form-control" id="waPhoneId" placeholder="whatsapp phone id"
+                        data-i18n-placeholder="int_phone_id_ph" disabled>
+                      <small class="text-muted d-none" id="waPhoneIdHint" data-i18n="int_leave_empty_hint">Leave empty
+                        to keep current value</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" data-i18n="int_access_token">Access Token</label>
+                      <input type="password" class="form-control" id="waAccessToken" placeholder="Access token"
+                        data-i18n-placeholder="int_access_token_ph" disabled>
+                      <small class="text-muted d-none" id="waAccessTokenHint" data-i18n="int_leave_empty_hint">Leave
+                        empty to keep current value</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" data-i18n="int_waba_id">WABA ID</label>
+                      <input type="text" class="form-control" id="waBusinessId" placeholder="Business Account ID"
+                        data-i18n-placeholder="int_waba_id_ph" disabled>
+                      <small class="text-muted d-none" id="waBusinessIdHint" data-i18n="int_leave_empty_hint">Leave
+                        empty to keep current value</small>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                      <button class="btn btn-outline-primary" id="testWaBtn" type="button" disabled>
+                        <i class="fa-solid fa-plug me-1"></i><span data-i18n="btn_test_connection">Test
+                          Connection</span>
+                      </button>
+                      <span id="waTestResult" class="text-muted small ms-2 align-self-center"></span>
+                    </div>
+                  </div>
+                </div>
+                <!-- WhatsApp BYON: Webhook Configuration -->
+                <div id="waWebhookSection" class="border-top mt-3 pt-3 d-none">
+                  <h6 class="fw-semibold" data-i18n="int_wa_webhook_config">Webhook Configuration</h6>
+                  <p class="text-muted small" data-i18n="int_wa_webhook_hint">Copy these values to Meta Business Suite
+                    &gt; WhatsApp &gt; Configuration</p>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label" data-i18n="int_webhook_url">Webhook URL</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="waWebhookUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyWaWebhookBtn" title="Copy">
+                          <i class="fa-solid fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" data-i18n="int_verify_token">Verify Token</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="waVerifyToken" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyWaVerifyBtn" title="Copy">
+                          <i class="fa-solid fa-copy"></i>
+                        </button>
+                      </div>
+                      <small class="text-muted" data-i18n="int_verify_token_hint">Auto-generated when you save
+                        credentials</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="lineConfigBox" class="border rounded p-3 mb-3 d-none">
+                <h6 class="fw-semibold" data-i18n="int_line_credentials">LINE Credentials</h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" data-i18n="int_channel_secret">Channel Secret</label>
+                    <input type="password" class="form-control" id="lineSecret" placeholder="Channel Secret"
+                      data-i18n-placeholder="int_channel_secret_ph">
+                    <small class="text-muted d-none" id="lineSecretHint" data-i18n="int_leave_empty_hint">Leave empty to
+                      keep current value</small>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" data-i18n="int_channel_access_token">Channel Access Token</label>
+                    <input type="password" class="form-control" id="lineToken" placeholder="Channel Access Token"
+                      data-i18n-placeholder="int_channel_access_token_ph">
+                    <small class="text-muted d-none" id="lineTokenHint" data-i18n="int_leave_empty_hint">Leave empty to
+                      keep current value</small>
+                  </div>
+                  <div class="col-md-12 d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-primary" id="testLineBtn" type="button">
+                      <i class="fa-solid fa-plug me-1"></i><span data-i18n="btn_test_connection">Test Connection</span>
+                    </button>
+                    <span id="lineTestResult" class="text-muted small"></span>
+                  </div>
+                </div>
+                <!-- LINE Webhook Section - shown only after successful test/save -->
+                <div id="lineWebhookSection" class="border-top mt-3 pt-3 d-none">
+                  <h6 class="fw-semibold" data-i18n="int_line_webhook_config">Webhook Configuration</h6>
+                  <p class="text-muted small" data-i18n="int_line_webhook_hint">Copy this URL to LINE Developers Console
+                    → Messaging API → Webhook settings</p>
+                  <div class="row g-3">
+                    <div class="col-md-8">
+                      <label class="form-label" data-i18n="int_webhook_url">Webhook URL</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="lineWebhookUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyLineWebhookBtn" title="Copy">
+                          <i class="fa-solid fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="int_close">Close</button>
+              <button class="btn btn-primary" id="saveMsgConfigBtn" data-i18n="int_save">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Verification Modal -->
+      <div class="modal fade" id="pinModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fa-solid fa-shield-halved me-2 text-primary"></i><span
+                  data-i18n="int_verify_password">Verify Password</span></h5>
+            </div>
+            <div class="modal-body">
+              <div id="pinModalAlert" class="alert d-none"></div>
+              <p class="text-muted small mb-3" data-i18n="int_password_required_hint">Enter your login password to
+                access this section.</p>
+              <label class="form-label" data-i18n="int_your_password">Your Password</label>
+              <input type="password" class="form-control" id="unlockPinInput" placeholder="Enter password"
+                data-i18n-placeholder="int_password_placeholder" autofocus>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" id="goBackBtn"><i class="fa-solid fa-arrow-left me-1"></i><span
+                  data-i18n="int_go_back">Go Back</span></button>
+              <button class="btn btn-primary" id="confirmUnlockBtn"><i class="fa-solid fa-unlock me-1"></i><span
+                  data-i18n="int_unlock">Unlock</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Modal for PMS Configuration -->
+      <div class="modal fade" id="pmsConfigModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" data-i18n="int_configure_pms">Configure PMS</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="pmsModalAlert" class="alert d-none"></div>
+              <div class="mb-3">
+                <label class="form-label" data-i18n="int_pms_type">PMS Type</label>
+                <select class="form-select" id="pmsType">
+                  <option value="" data-i18n="int_pms_none">None</option>
+                  <!-- <option value="mews">Mews</option> SUSPENDED: Mews PMS temporarily disabled -->
+                  <option value="apaleo">Apaleo</option>
+                  <option value="cloudbeds">Cloudbeds (Coming Soon)</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" data-i18n="int_pms_property_id">Property ID</label>
+                <input type="text" class="form-control" id="pmsPropertyId" placeholder="Property ID"
+                  data-i18n-placeholder="int_pms_property_id_ph">
+              </div>
+              <div class="mb-3" id="pmsApiKeySection">
+                <label class="form-label" data-i18n="int_pms_api_key">API Key</label>
+                <textarea class="form-control" id="pmsApiKey" rows="2" placeholder="Paste API key"
+                  data-i18n-placeholder="int_pms_api_key_ph"></textarea>
+              </div>
+              <!-- Cloudbeds Auth Section -->
+              <div class="mb-3 d-none" id="cloudbedsAuthSection">
+                <div class="mb-2">
+                  <label class="form-label" data-i18n="int_cloudbeds_auth_method">Authentication Method</label>
+                  <select class="form-select" id="cloudbedsAuthMethod">
+                    <option value="api_key" data-i18n="int_auth_api_key">API Key (Recommended)</option>
+                    <option value="oauth" data-i18n="int_auth_oauth">OAuth 2.0</option>
+                  </select>
+                </div>
+                <div id="cloudbedsApiKeySection">
+                  <label class="form-label" data-i18n="int_pms_api_key">API Key</label>
+                  <textarea class="form-control" id="cloudbedsApiKey" rows="2"
+                    placeholder="Paste API key from Cloudbeds (Coming Soon)"
+                    data-i18n-placeholder="int_cloudbeds_api_key_ph"></textarea>
+                  <small class="text-muted" data-i18n="int_cloudbeds_api_key_hint">Get your API key from Cloudbeds (Coming Soon):
+                    Settings → Integrations → API</small>
+                </div>
+                <div id="cloudbedsOAuthSection" class="d-none">
+                  <div class="alert alert-warning mb-2">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    <span data-i18n="int_cloudbeds_oauth_note">OAuth requires platform registration with Cloudbeds (Coming Soon). Use
+                      API Key if you don't have OAuth credentials.</span>
+                  </div>
+                  <div id="cloudbedsNotConnected">
+                    <button class="btn btn-primary" id="connectCloudbedsBtn" type="button">
+                      <i class="fa-solid fa-link me-2"></i><span data-i18n="int_connect_cloudbeds">Connect
+                        Cloudbeds (Coming Soon)</span>
+                    </button>
+                  </div>
+                  <div id="cloudbedsConnected" class="d-none">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i><span
+                          data-i18n="int_connected">Connected</span></span>
+                      <span class="text-muted small" id="cloudbedsPropertyName"></span>
+                      <button class="btn btn-outline-danger btn-sm ms-auto" id="disconnectCloudbedsBtn" type="button">
+                        <i class="fa-solid fa-unlink me-1"></i><span data-i18n="int_disconnect">Disconnect</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-primary" id="testPmsBtn" type="button">
+                <i class="fa-solid fa-plug me-1"></i><span data-i18n="btn_test_connection">Test Connection</span>
+              </button>
+              <span id="pmsTestResult" class="text-muted small me-auto"></span>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                data-i18n="int_close">Close</button>
+              <button type="button" class="btn btn-primary" id="savePmsBtn" data-i18n="int_save_pms">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/js/lib/qrious.min.js"></script>
+  <script>
+    const tokenKey = "token";
+    const baseUrl = "{{ request.base_url if request else '' }}";
+    const normalizedBase = (baseUrl || "").replace(/\/+$/, "");
+    let isLocked = true; // Always locked until password verified
+    let isUnlocked = false;
+    let currentData = null;
+
+    // Show password modal on page load (skip for first-time setup)
+    document.addEventListener("DOMContentLoaded", function () {
+      const firstSetupDone = localStorage.getItem('first_setup_done');
+      const pinModal = document.getElementById("pinModal");
+      const overlay = document.getElementById("protectedOverlay");
+
+      // Skip password for first-time users (onboarding flow)
+      if (!firstSetupDone) {
+        isUnlocked = true;
+        if (overlay) overlay.style.display = "none";
+        return; // Don't show password modal
+      }
+
+      // Existing users: show password modal
+      if (pinModal) {
+        const modal = new bootstrap.Modal(pinModal);
+        modal.show();
+        // Focus password input after modal is shown
+        pinModal.addEventListener('shown.bs.modal', function () {
+          document.getElementById("unlockPinInput")?.focus();
+        });
+      }
+    });
+
+    // Go Back button - redirect to tasks
+    document.addEventListener("DOMContentLoaded", function () {
+      const goBackBtn = document.getElementById("goBackBtn");
+      if (goBackBtn) {
+        goBackBtn.addEventListener("click", function () {
+          const token = localStorage.getItem("token");
+          window.location.href = "/ui/admin/tasks" + (token ? "?token=" + encodeURIComponent(token) : "");
+        });
+      }
+    });
+
+    function getToken() {
+      return localStorage.getItem(tokenKey);
+    }
+    function showAlert(msg, type = "info") {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = `alert alert-${type}`;
+      box.classList.remove("d-none");
+    }
+    function updateStatus(pmsConfigured) {
+      const pms = document.getElementById("pmsStatusBadge");
+      if (pms) {
+        if (pmsConfigured) {
+          pms.textContent = I18N.t('int_status_configured');
+          pms.className = "badge bg-success";
+        } else {
+          pms.textContent = I18N.t('int_status_not_configured');
+          pms.className = "badge bg-secondary";
+        }
+      }
+    }
+
+    function renderPmsCard(data) {
+      const badge = document.getElementById("pmsStatusBadge");
+      const details = document.getElementById("pmsDetails");
+      const lockBadge = document.getElementById("pmsLockBadge");
+      const unlockBtn = document.getElementById("unlockPmsBtn");
+      const configureBtn = document.getElementById("configurePmsBtn");
+
+      if (data.pms_configured) {
+        if (badge) {
+          badge.className = "badge bg-success";
+          badge.textContent = I18N.t("int_status_configured");
+        }
+        const pmsName = data.pms_type ? data.pms_type.charAt(0).toUpperCase() + data.pms_type.slice(1) : "PMS";
+        if (details) {
+          details.textContent = pmsName + (data.pms_property_id ? " • " + data.pms_property_id : "");
+        }
+      } else {
+        if (badge) {
+          badge.className = "badge bg-secondary";
+          badge.textContent = I18N.t("int_status_not_configured");
+        }
+        if (details) details.textContent = "";
+      }
+
+      // Page-level protection handles locking - hide lock UI elements
+      // NOTE: Do NOT enable configureBtn here - checkPmsTierRestriction() controls that
+      if (lockBadge) lockBadge.classList.add("d-none");
+      if (unlockBtn) unlockBtn.classList.add("d-none");
+    }
+
+    function renderRoomQrSection(data) {
+      const lockBadge = document.getElementById("roomQrLockBadge");
+      const unlockBtn = document.getElementById("unlockRoomQrBtn");
+      const formSection = document.getElementById("roomQrFormSection");
+      const printBtn = document.getElementById("roomQrPrintBtn");
+      const providerIcon = document.getElementById("roomQrProviderIcon");
+      const providerText = document.getElementById("roomQrProviderText");
+      const providerAlert = document.getElementById("roomQrProviderAlert");
+
+      // Page-level protection handles locking - show everything
+      if (lockBadge) lockBadge.classList.add("d-none");
+      if (unlockBtn) unlockBtn.classList.add("d-none");
+      if (formSection) formSection.classList.remove("d-none");
+      if (printBtn) printBtn.classList.remove("d-none");
+
+      // Update provider info based on messaging_provider
+      const provider = data.messaging_provider || "meta";
+      if (provider === "line") {
+        if (providerIcon) {
+          providerIcon.className = "fa-brands fa-line fa-lg";
+          providerIcon.style.color = "#06C755";
+        }
+        if (providerText) {
+          providerText.textContent = I18N.t('int_room_qr_line_hint') || "Guests scan QR code to open LINE chat with pre-filled room number.";
+        }
+      } else {
+        if (providerIcon) {
+          providerIcon.className = "fa-brands fa-whatsapp fa-lg";
+          providerIcon.style.color = "#25D366";
+        }
+        if (providerText) {
+          providerText.textContent = I18N.t('int_room_qr_whatsapp_hint') || "Guests scan QR code to open WhatsApp chat with pre-filled room number.";
+        }
+      }
+    }
+
+    function renderProvider(provider, data) {
+      const badge = document.getElementById("msgStatusBadge");
+      const subtitle = document.getElementById("msgSubtitle");
+      const details = document.getElementById("msgDetails");
+      const icon = document.getElementById("msgIcon");
+      const switchBtn = document.getElementById("switchPlatformBtn");
+      const configureBtn = document.getElementById("configureMsgBtn");
+      const lockBadge = document.getElementById("msgLockBadge");
+      const pmsLockBadge = document.getElementById("pmsLockBadge");
+      const unlockPmsBtn = document.getElementById("unlockPmsBtn");
+      const mode = (data.connection_status && data.connection_status.mode) || "disconnected";
+      const locked = data.messaging_locked || (data.connection_status && data.connection_status.locked) || data.security_pin_required;
+      const staffRole = data.staff_role || "";
+      let statusText = I18N.t('int_msg_status_disconnected');
+      let badgeClass = "badge bg-danger";
+      let detailText = I18N.t('int_msg_detail_none');
+      let subtitleText = provider === "line" ? "LINE" : "WhatsApp";
+      if (mode === "platform_default") {
+        statusText = I18N.t('int_msg_status_platform');
+        badgeClass = "badge bg-success";
+        detailText = I18N.t('int_msg_detail_platform');
+        if (switchBtn) switchBtn.classList.add("d-none");
+      } else if (mode === "custom_meta" || mode === "custom_line") {
+        statusText = I18N.t('int_msg_status_custom');
+        badgeClass = "badge bg-success";
+        detailText = I18N.t('int_msg_detail_custom');
+        if (switchBtn) {
+          switchBtn.classList.toggle("d-none", provider === "line");
+        }
+      } else {
+        statusText = I18N.t('int_msg_status_disconnected');
+        badgeClass = "badge bg-danger";
+        detailText = I18N.t('int_msg_detail_none');
+        if (switchBtn) switchBtn.classList.toggle("d-none", provider === "line");
+      }
+      // Once password verified at page level, all settings are accessible
+      const configureBtnEl = configureBtn;
+      const switchBtnEl = switchBtn;
+      if (configureBtnEl) {
+        configureBtnEl.classList.remove("disabled");
+        configureBtnEl.removeAttribute("disabled");
+      }
+      if (switchBtnEl) {
+        switchBtnEl.classList.remove("disabled");
+        switchBtnEl.removeAttribute("disabled");
+      }
+      const unlockBtn = document.getElementById("unlockMsgBtn");
+      if (unlockBtn) unlockBtn.classList.add("d-none");
+      setPmsInputsDisabled(false);
+      if (badge) {
+        badge.textContent = statusText;
+        badge.className = badgeClass;
+      }
+      // Hide lock badges - page-level protection handles this now
+      if (lockBadge) lockBadge.classList.add("d-none");
+      if (pmsLockBadge) pmsLockBadge.classList.add("d-none");
+      if (unlockPmsBtn) unlockPmsBtn.classList.add("d-none");
+      if (subtitle) subtitle.textContent = subtitleText;
+      if (details) details.textContent = detailText;
+      if (icon) {
+        icon.innerHTML = "";
+        const i = document.createElement("i");
+        if (provider === "line") {
+          i.className = "fa-brands fa-line fa-lg text-success";
+        } else {
+          i.className = "fa-brands fa-whatsapp fa-lg text-success";
+        }
+        icon.appendChild(i);
+      }
+      const providerSelect = document.getElementById("msgProviderSelect");
+      if (providerSelect) {
+        providerSelect.value = provider === "line" ? "line" : "meta_custom";
+        toggleMsgModalFields(providerSelect.value);
+      }
+      if (provider === "line") {
+        const lineUrl = document.getElementById("lineWebhookUrl");
+        if (lineUrl) lineUrl.value = `${normalizedBase}/webhook/line/${data.hotel_id || ''}`;
+        // Show webhook section if LINE is already configured (has credentials)
+        const hasLineCredentials = data.line_channel_secret_masked || data.line_channel_access_token_masked;
+        const lineWebhookSection = document.getElementById("lineWebhookSection");
+        if (lineWebhookSection && hasLineCredentials) {
+          lineWebhookSection.classList.remove("d-none");
+        }
+      } else {
+        // Hide LINE webhook section when not using LINE
+        const lineWebhookSection = document.getElementById("lineWebhookSection");
+        if (lineWebhookSection) lineWebhookSection.classList.add("d-none");
+      }
+    }
+
+    // Check subscription tier and restrict PMS for non-PRO users
+    async function checkPmsTierRestriction() {
+      const token = getToken();
+      if (!token) return;
+
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      const configureBtn = document.getElementById("configurePmsBtn");
+      const proBadge = document.getElementById("pmsProBadge");
+      const comingSoonBadge = document.getElementById("pmsComingSoonBadge");
+
+      // Thailand: PMS not available for LINE yet - show Coming Soon
+      if (hotelCountry === 'TH') {
+        if (proBadge) proBadge.classList.add("d-none");
+        if (comingSoonBadge) {
+          comingSoonBadge.classList.remove("d-none");
+          const textSpan = comingSoonBadge.querySelector('[data-i18n="int_pms_coming_soon"]');
+          if (textSpan) textSpan.textContent = I18N.t('int_pms_coming_soon') || 'Coming Soon';
+        }
+        if (configureBtn) {
+          configureBtn.disabled = true;
+          configureBtn.classList.add('btn-secondary');
+          configureBtn.classList.remove('btn-primary');
+          configureBtn.title = I18N.t('int_pms_coming_soon') || 'Coming Soon';
+        }
+        return; // Don't check tier for Thailand
+      }
+
+      try {
+        const resp = await fetch('/admin/subscription-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        const tier = data.tier || 'free';
+
+        const pmsDetails = document.getElementById("pmsDetails");
+
+        if (tier !== 'pro') {
+          // Non-PRO users - keep clickable for redirect to upgrade
+          if (configureBtn) {
+            configureBtn.dataset.needsPro = "true";
+            configureBtn.title = I18N.t('int_pms_pro_only') || "PMS integration requires PRO - Click to upgrade";
+          }
+          if (proBadge) {
+            proBadge.classList.remove("d-none");
+          }
+        } else {
+          // PRO tier - enable PMS
+          if (configureBtn) {
+            configureBtn.dataset.needsPro = "false";
+            configureBtn.title = "";
+          }
+          if (proBadge) {
+            proBadge.classList.add("d-none");
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check tier for PMS:', err);
+      }
+    }
+
+    async function loadIntegrations() {
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      const resp = await fetch("/api/admin/integrations", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!resp.ok) {
+        showAlert(I18N.t('int_load_failed'), "danger");
+        return;
+      }
+      const data = await resp.json();
+      currentData = data;
+      // NOTE: Do NOT reset isUnlocked here - it's managed by password verification
+      unlockedPin = null;
+      const pmsTypeEl = document.getElementById("pmsType");
+      const pmsPropertyIdEl = document.getElementById("pmsPropertyId");
+      if (pmsTypeEl) pmsTypeEl.value = data.pms_type || "";
+      if (pmsPropertyIdEl) pmsPropertyIdEl.value = data.pms_property_id || "";
+      updateStatus(data.pms_configured);
+      renderPmsCard(data);
+
+      // Check tier restriction for PMS
+      await checkPmsTierRestriction();
+      renderProvider(data.messaging_provider || "meta", data);
+      renderRoomQrSection(data);
+
+      // Handle Cloudbeds Auth UI state
+      const pmsType = data.pms_type || "";
+      handlePmsTypeChange(pmsType);
+      if (pmsType === "cloudbeds") {
+        const isOAuthConnected = data.cloudbeds_connected || false;
+        const propertyId = data.cloudbeds_property_id || data.pms_property_id;
+
+        // Determine auth method based on what's configured
+        const authMethodSelect = document.getElementById("cloudbedsAuthMethod");
+        if (isOAuthConnected) {
+          // OAuth is connected
+          if (authMethodSelect) authMethodSelect.value = "oauth";
+          handleCloudbedsAuthMethodChange();
+          updateCloudbedsOAuthUI(true, propertyId);
+        } else if (data.pms_configured && data.pms_type === "cloudbeds") {
+          // API key is configured (pms_api_key exists)
+          if (authMethodSelect) authMethodSelect.value = "api_key";
+          handleCloudbedsAuthMethodChange();
+          // Show masked API key placeholder
+          const cloudbedsApiKey = document.getElementById("cloudbedsApiKey");
+          if (cloudbedsApiKey) cloudbedsApiKey.placeholder = "****configured****";
+        }
+      }
+
+      // Pre-fill masked values in modal placeholders and show hints
+      const waPhone = document.getElementById("waPhoneId");
+      const waToken = document.getElementById("waAccessToken");
+      const waPhoneHint = document.getElementById("waPhoneIdHint");
+      const waTokenHint = document.getElementById("waAccessTokenHint");
+      if (waPhone && data.whatsapp_phone_id_masked) {
+        waPhone.placeholder = data.whatsapp_phone_id_masked;
+        if (waPhoneHint) waPhoneHint.classList.remove("d-none");
+      }
+      if (waToken && data.whatsapp_access_token_masked) {
+        waToken.placeholder = data.whatsapp_access_token_masked;
+        if (waTokenHint) waTokenHint.classList.remove("d-none");
+      }
+      const waBusinessId = document.getElementById("waBusinessId");
+      const waBusinessIdHint = document.getElementById("waBusinessIdHint");
+      if (waBusinessId && data.whatsapp_business_account_id_masked) {
+        waBusinessId.placeholder = data.whatsapp_business_account_id_masked;
+        if (waBusinessIdHint) waBusinessIdHint.classList.remove("d-none");
+      }
+      const lineSecret = document.getElementById("lineSecret");
+      const lineToken = document.getElementById("lineToken");
+      const lineSecretHint = document.getElementById("lineSecretHint");
+      const lineTokenHint = document.getElementById("lineTokenHint");
+      if (lineSecret && data.line_channel_secret_masked) {
+        lineSecret.placeholder = data.line_channel_secret_masked;
+        if (lineSecretHint) lineSecretHint.classList.remove("d-none");
+      }
+      if (lineToken && data.line_channel_access_token_masked) {
+        lineToken.placeholder = data.line_channel_access_token_masked;
+        if (lineTokenHint) lineTokenHint.classList.remove("d-none");
+      }
+
+      // WhatsApp BYON: Populate webhook URL and verify token
+      const waWebhookUrl = document.getElementById("waWebhookUrl");
+      const waVerifyToken = document.getElementById("waVerifyToken");
+      const waWebhookSection = document.getElementById("waWebhookSection");
+      if (data.whatsapp_verify_token) {
+        // Use dynamic browser URL (works with ngrok, localhost, production)
+        if (waWebhookUrl) waWebhookUrl.value = `${normalizedBase}/webhook/whatsapp/${data.hotel_id || ''}`;
+        if (waVerifyToken) waVerifyToken.value = data.whatsapp_verify_token;
+        if (waWebhookSection) waWebhookSection.classList.remove("d-none");
+      } else {
+        if (waWebhookSection) waWebhookSection.classList.add("d-none");
+      }
+    }
+
+    async function saveMsgConfig() {
+      const alert = document.getElementById("msgModalAlert");
+      if (alert) alert.classList.add("d-none");
+      if (!isUnlocked) return; // Page-level protection handles this
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      const provider = document.getElementById("msgProviderSelect")?.value || "meta_custom";
+      const payload = {
+        messaging_provider: provider === "line" ? "line" : "meta",
+        whatsapp_phone_id: null,
+        whatsapp_access_token: null,
+        whatsapp_business_account_id: null,
+        line_channel_secret: null,
+        line_channel_access_token: null,
+      };
+      if (provider === "meta_custom") {
+        payload.whatsapp_phone_id = document.getElementById("waPhoneId").value || null;
+        payload.whatsapp_access_token = document.getElementById("waAccessToken").value || null;
+        payload.whatsapp_business_account_id = document.getElementById("waBusinessId").value || null;
+        // Allow empty if credentials already exist (will keep current values)
+        const hasExistingWa = currentData && (currentData.whatsapp_phone_id_masked || currentData.whatsapp_access_token_masked);
+        if (!hasExistingWa && (!payload.whatsapp_phone_id || !payload.whatsapp_access_token)) {
+          if (alert) {
+            alert.textContent = I18N.t('int_wa_required');
+            alert.className = "alert alert-danger";
+            alert.classList.remove("d-none");
+          }
+          return;
+        }
+      } else if (provider === "line") {
+        payload.line_channel_secret = document.getElementById("lineSecret").value || null;
+        payload.line_channel_access_token = document.getElementById("lineToken").value || null;
+        // Allow empty if credentials already exist (will keep current values)
+        const hasExistingLine = currentData && (currentData.line_channel_secret_masked || currentData.line_channel_access_token_masked);
+        if (!hasExistingLine && (!payload.line_channel_secret || !payload.line_channel_access_token)) {
+          if (alert) {
+            alert.textContent = I18N.t('int_line_required');
+            alert.className = "alert alert-danger";
+            alert.classList.remove("d-none");
+          }
+          return;
+        }
+      }
+      const resp = await fetch("/api/admin/integrations", {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        showAlert(err?.detail || I18N.t('int_save_failed'), "danger");
+        return;
+      }
+      const data = await resp.json();
+      currentData = data; // Update current data for webhook URL display
+      renderProvider(data.messaging_provider || "meta", data);
+
+      // Show webhook section if LINE credentials were saved successfully
+      if (provider === "line" && data.line_webhook_url) {
+        showLineWebhookSection();
+      }
+
+      // Show webhook section if WhatsApp BYON credentials were saved successfully
+      if (provider === "meta_custom" && data.whatsapp_verify_token) {
+        const waWebhookUrl = document.getElementById("waWebhookUrl");
+        const waVerifyToken = document.getElementById("waVerifyToken");
+        const waWebhookSection = document.getElementById("waWebhookSection");
+        if (waWebhookUrl) waWebhookUrl.value = `${normalizedBase}/webhook/whatsapp/${data.hotel_id || ''}`;
+        if (waVerifyToken) waVerifyToken.value = data.whatsapp_verify_token;
+        if (waWebhookSection) waWebhookSection.classList.remove("d-none");
+      }
+
+      // Close modal after save
+      const modalEl = document.getElementById("msgConfigModal");
+      if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+      }
+      showAlert(I18N.t('int_saved'), "success");
+    }
+
+    function toggleMsgModalFields(val) {
+      const waBox = document.getElementById("waConfigBox");
+      const lineBox = document.getElementById("lineConfigBox");
+      if (waBox) waBox.classList.toggle("d-none", val !== "meta_custom");
+      if (lineBox) lineBox.classList.toggle("d-none", val !== "line");
+      // Reset test buttons when provider changes
+      resetTestButtons();
+    }
+
+    // Reset test buttons to original state
+    function resetTestButtons() {
+      const testWaBtn = document.getElementById("testWaBtn");
+      const testLineBtn = document.getElementById("testLineBtn");
+      const waResult = document.getElementById("waTestResult");
+      const lineResult = document.getElementById("lineTestResult");
+
+      if (testWaBtn) {
+        testWaBtn.innerHTML = '<i class="fa-solid fa-plug me-1"></i>' + (I18N.t('btn_test_connection') || 'Test Connection');
+        testWaBtn.className = "btn btn-outline-primary";
+        testWaBtn.onclick = testWaConnection;
+      }
+      if (testLineBtn) {
+        testLineBtn.innerHTML = '<i class="fa-solid fa-plug me-1"></i>' + (I18N.t('btn_test_connection') || 'Test Connection');
+        testLineBtn.className = "btn btn-outline-primary";
+        testLineBtn.onclick = testLineConnection;
+      }
+      if (waResult) waResult.textContent = "";
+      if (lineResult) lineResult.textContent = "";
+    }
+
+    // Initialize language selector
+    I18N.initSelect('lang-select');
+
+    // Reload integrations when language changes
+    window.addEventListener('languageChanged', () => {
+      loadIntegrations();
+    });
+
+    async function testPmsConnection() {
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      const btn = document.getElementById("testPmsBtn");
+      const result = document.getElementById("pmsTestResult");
+
+      // Get values from form (not saved yet)
+      const pmsType = document.getElementById("pmsType").value;
+      const pmsPropertyId = document.getElementById("pmsPropertyId").value;
+      const pmsApiKey = document.getElementById("pmsApiKey").value;
+
+      // Validate before testing
+      if (!pmsType || !pmsPropertyId || !pmsApiKey) {
+        result.textContent = "❌ " + (I18N.t('pms_fill_all_fields') || "Please fill all PMS fields first");
+        result.className = "text-danger small align-self-center";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = I18N.t('btn_testing') || "Testing...";
+      result.textContent = "";
+
+      const resp = await fetch("/api/admin/integrations/test-connection", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          pms_type: pmsType,
+          pms_property_id: pmsPropertyId,
+          pms_api_key: pmsApiKey
+        })
+      });
+
+      btn.disabled = false;
+      btn.textContent = I18N.t('btn_test_connection') || "Test Connection";
+
+      if (!resp.ok) {
+        result.textContent = "❌ " + (I18N.t('test_failed') || "Test failed");
+        result.className = "text-danger small align-self-center";
+        return;
+      }
+
+      const data = await resp.json();
+      if (data.success) {
+        result.textContent = "✅ " + (I18N.t('test_success') || "Connection successful!");
+        result.className = "text-success small align-self-center";
+      } else {
+        result.textContent = "❌ " + (data.message || I18N.t('test_failed') || "Test failed");
+        result.className = "text-danger small align-self-center";
+      }
+    }
+
+    function setPmsInputsDisabled(disabled) {
+      const ids = ["pmsType", "pmsPropertyId", "pmsApiKey", "savePmsBtn", "testPmsBtn"];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.disabled = disabled;
+          el.classList.toggle("disabled", disabled);
+        }
+      });
+    }
+
+    async function savePmsConfig() {
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      if (!isUnlocked) return; // Page-level protection handles this
+      const pmsType = document.getElementById("pmsType")?.value || "";
+
+      // For Cloudbeds with API key method, use the dedicated field
+      let pmsApiKey = document.getElementById("pmsApiKey")?.value || "";
+      if (pmsType === "cloudbeds") {
+        const authMethod = document.getElementById("cloudbedsAuthMethod")?.value || "api_key";
+        if (authMethod === "api_key") {
+          pmsApiKey = document.getElementById("cloudbedsApiKey")?.value || "";
+        }
+        // If OAuth is selected, pmsApiKey stays empty (OAuth tokens are stored separately)
+      }
+
+      const payload = {
+        pms_type: pmsType,
+        pms_property_id: document.getElementById("pmsPropertyId")?.value || "",
+        pms_api_key: pmsApiKey,
+      };
+      const resp = await fetch("/api/admin/integrations", {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        showAlert(err?.detail || I18N.t('int_pms_save_failed'), "danger");
+        return;
+      }
+      const data = await resp.json();
+      updateStatus(data.pms_configured);
+      setPmsInputsDisabled(false);
+      // Close the modal
+      const modalEl = document.getElementById("pmsConfigModal");
+      if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+      }
+      // Refresh the data and update card
+      loadIntegrations();
+      showAlert(I18N.t('int_pms_save_success'), "success");
+    }
+
+    let lineBasicIdCache = null;
+
+    // WhatsApp BYON: Test connection - sends form values, transforms to Save on success
+    async function testWaConnection() {
+      const token = getToken();
+      if (!token) return;
+
+      const btn = document.getElementById("testWaBtn");
+      const result = document.getElementById("waTestResult");
+
+      // Get credentials from form
+      const phoneId = document.getElementById("waPhoneId")?.value || "";
+      const accessToken = document.getElementById("waAccessToken")?.value || "";
+      const wabaId = document.getElementById("waBusinessId")?.value || "";
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>' + (I18N.t('btn_testing') || 'Testing...');
+      result.textContent = "";
+
+      const resp = await fetch("/api/admin/integrations/test-whatsapp", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          phone_id: phoneId,
+          access_token: accessToken,
+          waba_id: wabaId
+        })
+      });
+
+      btn.disabled = false;
+
+      const data = await resp.json();
+      if (data.success) {
+        result.textContent = "✅ " + data.message;
+        result.className = "text-success small ms-2 align-self-center";
+        // Transform button to "Save"
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i>' + (I18N.t('int_save') || 'Save');
+        btn.className = "btn btn-success";
+        btn.onclick = saveMsgConfig;
+      } else {
+        result.textContent = "❌ " + data.message;
+        result.className = "text-danger small ms-2 align-self-center";
+        // Keep as Test Connection
+        btn.innerHTML = '<i class="fa-solid fa-plug me-1"></i>' + (I18N.t('btn_test_connection') || 'Test Connection');
+      }
+    }
+
+    // LINE: Test connection - validates AND saves if test passes
+    async function testLineConnection() {
+      const token = getToken();
+      if (!token) return;
+
+      const btn = document.getElementById("testLineBtn");
+      const result = document.getElementById("lineTestResult");
+
+      // Get credentials from form
+      const channelSecret = document.getElementById("lineSecret")?.value || "";
+      const accessToken = document.getElementById("lineToken")?.value || "";
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>' + (I18N.t('btn_testing') || 'Testing...');
+      result.textContent = "";
+
+      // Step 1: Test credentials with LINE API
+      const testResp = await fetch("/api/admin/integrations/test-line", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          channel_secret: channelSecret,
+          access_token: accessToken
+        })
+      });
+
+      const testData = await testResp.json();
+
+      if (!testData.success) {
+        btn.disabled = false;
+        result.textContent = "❌ " + testData.message;
+        result.className = "text-danger small ms-2 align-self-center";
+        btn.innerHTML = '<i class="fa-solid fa-plug me-1"></i>' + (I18N.t('btn_test_connection') || 'Test Connection');
+        return;
+      }
+
+      // Step 2: Test passed - now SAVE to database
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>' + (I18N.t('btn_saving') || 'Saving...');
+
+      const savePayload = {
+        messaging_provider: "line",
+        whatsapp_phone_id: null,
+        whatsapp_access_token: null,
+        whatsapp_business_account_id: null,
+        line_channel_secret: channelSecret,
+        line_channel_access_token: accessToken
+      };
+
+      const saveResp = await fetch("/api/admin/integrations", {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(savePayload)
+      });
+
+      btn.disabled = false;
+
+      if (saveResp.ok) {
+        const saveData = await saveResp.json();
+        currentData = saveData; // Update for webhook URL
+
+        // Success: Test passed + Saved
+        result.textContent = "✅ " + (I18N.t('line_test_saved') || 'Connected & Saved!');
+        result.className = "text-success small ms-2 align-self-center";
+
+        // Change button to indicate done
+        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i>' + (I18N.t('btn_done') || 'Done');
+        btn.className = "btn btn-success";
+        btn.disabled = true;
+
+        // Show webhook URL (now it will work because credentials are saved)
+        showLineWebhookSection();
+        showAlert(I18N.t('int_saved') || 'Saved!', "success");
+      } else {
+        result.textContent = "❌ " + (I18N.t('save_error') || 'Save failed');
+        result.className = "text-danger small ms-2 align-self-center";
+        btn.innerHTML = '<i class="fa-solid fa-plug me-1"></i>' + (I18N.t('btn_test_connection') || 'Test Connection');
+      }
+    }
+
+    // Show LINE webhook section (after successful test or when LINE is configured)
+    function showLineWebhookSection() {
+      const section = document.getElementById("lineWebhookSection");
+      const urlField = document.getElementById("lineWebhookUrl");
+      if (section) section.classList.remove("d-none");
+      if (urlField && currentData) {
+        urlField.value = `${normalizedBase}/webhook/line/${currentData.hotel_id || ''}`;
+      }
+    }
+
+    // Copy to clipboard helper
+    function copyToClipboard(elementId) {
+      const input = document.getElementById(elementId);
+      if (input && input.value) {
+        navigator.clipboard.writeText(input.value).then(() => {
+          // Brief visual feedback
+          input.classList.add("bg-success-subtle");
+          setTimeout(() => input.classList.remove("bg-success-subtle"), 500);
+        });
+      }
+    }
+
+    function showRoomQrAlert(message, type = "danger") {
+      const alert = document.getElementById("roomQrAlert");
+      if (!alert) return;
+      alert.textContent = message;
+      alert.className = `alert alert-${type} mt-3 mb-2 no-print`;
+      alert.classList.remove("d-none");
+    }
+
+    async function getLineBasicId() {
+      if (lineBasicIdCache) return lineBasicIdCache;
+      const token = getToken();
+      if (!token) return null;
+      const resp = await fetch("/api/admin/integrations/line-qr", {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        showRoomQrAlert(err?.detail || I18N.t('int_room_qr_fetch_failed'));
+        return null;
+      }
+      const data = await resp.json();
+      lineBasicIdCache = data.basic_id || null;
+      return lineBasicIdCache;
+    }
+
+    async function fetchQrToken(room) {
+      const token = getToken();
+      if (!token) return null;
+      try {
+        const resp = await fetch("/api/admin/integrations/generate-qr-token", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ room_number: String(room) }),
+        });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data.token;
+      } catch (e) {
+        console.error("Failed to generate QR token:", e);
+        return null;
+      }
+    }
+
+    function buildLineDeepLink(basicId, room) {
+      const id = basicId && basicId.startsWith("@") ? basicId : `@${basicId}`;
+      // Bilingual Thai/English for LINE QR codes (no token needed — LINE has per-hotel channels)
+      const text = `เชื่อมต่อห้อง ${room} / Connect Room ${room}`;
+      return `https://line.me/R/oaMessage/${id}/?${encodeURIComponent(text)}`;
+    }
+
+    function buildWhatsAppDeepLink(phoneNumber, room, hotelId, qrToken) {
+      // Remove any non-numeric characters from phone number
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      // Get language and use appropriate connect text (ro/en only)
+      const lang = localStorage.getItem('app_lang') || 'en';
+      const connectText = lang === 'ro' ? 'Conectează Camera' : 'Connect Room';
+      // Include hotel ID and QR token for multi-tenant routing + anti-spoofing
+      let text = `${connectText} ${room} #${hotelId}`;
+      if (qrToken) text += ` !${qrToken}`;
+      return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+    }
+
+    function renderRoomQrCard(room, url) {
+      const grid = document.getElementById("roomQrGrid");
+      if (!grid) return;
+      const card = document.createElement("div");
+      card.className = "room-qr-card";
+      const canvas = document.createElement("canvas");
+      const label = document.createElement("div");
+      label.className = "mt-2 fw-semibold";
+      label.textContent = `${I18N.t('int_room_qr_room')} ${room}`;
+      card.appendChild(canvas);
+      card.appendChild(label);
+      grid.appendChild(card);
+
+      if (window.QRious) {
+        new QRious({
+          element: canvas,
+          size: 150,
+          value: url,
+        });
+      }
+    }
+
+    async function generateRoomQrs() {
+      const alert = document.getElementById("roomQrAlert");
+      if (alert) alert.classList.add("d-none");
+      const grid = document.getElementById("roomQrGrid");
+      if (grid) grid.innerHTML = "";
+      if (!window.QRious) {
+        showRoomQrAlert(I18N.t('int_room_qr_lib_missing'));
+        return;
+      }
+      const startVal = parseInt(document.getElementById("roomQrStart")?.value || "", 10);
+      const endVal = parseInt(document.getElementById("roomQrEnd")?.value || "", 10);
+      if (!startVal || !endVal || startVal <= 0 || endVal <= 0 || endVal < startVal) {
+        showRoomQrAlert(I18N.t('int_room_qr_invalid_range'), "warning");
+        return;
+      }
+
+      const provider = currentData?.messaging_provider || "meta";
+
+      if (provider === "line") {
+        // LINE: use LINE deep links
+        const basicId = await getLineBasicId();
+        if (!basicId) return;
+        for (let room = startVal; room <= endVal; room += 1) {
+          const url = buildLineDeepLink(basicId, room);
+          renderRoomQrCard(room, url);
+        }
+      } else {
+        // WhatsApp: use wa.me deep links with platform phone number
+        const waPhoneNumber = currentData?.whatsapp_phone_number;
+        const hotelId = currentData?.hotel_id;
+        if (!waPhoneNumber) {
+          showRoomQrAlert(I18N.t('int_room_qr_no_phone') || "WhatsApp phone number not configured", "warning");
+          return;
+        }
+        if (!hotelId) {
+          showRoomQrAlert("Hotel ID not available", "warning");
+          return;
+        }
+        for (let room = startVal; room <= endVal; room += 1) {
+          const qrToken = await fetchQrToken(room);
+          const url = buildWhatsAppDeepLink(waPhoneNumber, room, hotelId, qrToken);
+          renderRoomQrCard(room, url);
+        }
+      }
+    }
+
+    // Cloudbeds OAuth helpers
+    function updateCloudbedsOAuthUI(isConnected, propertyId) {
+      const oauthSection = document.getElementById("cloudbedsOAuthSection");
+      const notConnected = document.getElementById("cloudbedsNotConnected");
+      const connected = document.getElementById("cloudbedsConnected");
+      const propertyName = document.getElementById("cloudbedsPropertyName");
+
+      if (isConnected) {
+        if (notConnected) notConnected.classList.add("d-none");
+        if (connected) connected.classList.remove("d-none");
+        if (propertyName && propertyId) propertyName.textContent = `Property: ${propertyId}`;
+      } else {
+        if (notConnected) notConnected.classList.remove("d-none");
+        if (connected) connected.classList.add("d-none");
+      }
+    }
+
+    function handlePmsTypeChange(pmsType) {
+      const apiKeySection = document.getElementById("pmsApiKeySection");
+      const cloudbedsAuthSection = document.getElementById("cloudbedsAuthSection");
+
+      if (pmsType === "cloudbeds") {
+        if (apiKeySection) apiKeySection.classList.add("d-none");
+        if (cloudbedsAuthSection) cloudbedsAuthSection.classList.remove("d-none");
+        // Trigger auth method change to show correct sub-section
+        handleCloudbedsAuthMethodChange();
+      } else {
+        if (apiKeySection) apiKeySection.classList.remove("d-none");
+        if (cloudbedsAuthSection) cloudbedsAuthSection.classList.add("d-none");
+      }
+    }
+
+    function handleCloudbedsAuthMethodChange() {
+      const authMethod = document.getElementById("cloudbedsAuthMethod")?.value || "api_key";
+      const apiKeySection = document.getElementById("cloudbedsApiKeySection");
+      const oauthSection = document.getElementById("cloudbedsOAuthSection");
+
+      if (authMethod === "oauth") {
+        if (apiKeySection) apiKeySection.classList.add("d-none");
+        if (oauthSection) oauthSection.classList.remove("d-none");
+      } else {
+        if (apiKeySection) apiKeySection.classList.remove("d-none");
+        if (oauthSection) oauthSection.classList.add("d-none");
+      }
+    }
+
+    async function connectCloudbeds() {
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      // Get hotel_id from current data or URL
+      const hotelId = currentData?.hotel_id;
+      if (!hotelId) {
+        showAlert("Hotel ID not found", "danger");
+        return;
+      }
+      // Redirect to OAuth authorization (pass token to preserve auth after callback)
+      window.location.href = `/oauth/cloudbeds/authorize/${hotelId}?token=${encodeURIComponent(token)}`;
+    }
+
+    async function disconnectCloudbeds() {
+      const token = getToken();
+      if (!token) {
+        window.location = "/ui/admin/login";
+        return;
+      }
+      const hotelId = currentData?.hotel_id;
+      if (!hotelId) {
+        showAlert("Hotel ID not found", "danger");
+        return;
+      }
+
+      const resp = await fetch(`/oauth/cloudbeds/disconnect/${hotelId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (resp.ok) {
+        updateCloudbedsOAuthUI(false, null);
+        document.getElementById("pmsType").value = "";
+        handlePmsTypeChange("");
+        showAlert(I18N.t('int_cloudbeds_disconnected') || "Cloudbeds disconnected", "success");
+        loadIntegrations();
+      } else {
+        const err = await resp.json().catch(() => ({}));
+        showAlert(err?.detail || "Failed to disconnect", "danger");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("tasksLinkSidebar").href = "/ui/admin/tasks" + (window.location.search || "");
+      document.getElementById("conversationsLinkSidebar").href = "/ui/admin/conversations" + (window.location.search || "");
+      document.getElementById("aiSettingsLinkSidebar").href = "/ui/admin/settings/ai" + (window.location.search || "");
+      document.getElementById("helpLinkSidebar").href = "/ui/admin/help" + (window.location.search || "");
+
+      // Restore token from URL if coming from OAuth callback
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get("token");
+      if (tokenFromUrl) {
+        localStorage.setItem(tokenKey, tokenFromUrl);
+      }
+
+      loadIntegrations();
+
+      // Check for Cloudbeds OAuth callback success
+      if (urlParams.get("cloudbeds_connected") === "1") {
+        showAlert(I18N.t('int_cloudbeds_connected_success') || "Cloudbeds connected successfully!", "success");
+        // Clean URL (remove token and params from browser history)
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      document.getElementById("configureMsgBtn").addEventListener("click", () => {
+        if (!isUnlocked) return; // Page-level protection handles this
+        const modalEl = document.getElementById("msgConfigModal");
+        if (modalEl) {
+          resetTestButtons(); // Reset buttons when modal opens
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+        }
+      });
+      const confirmUnlockBtn = document.getElementById("confirmUnlockBtn");
+      if (confirmUnlockBtn) {
+        confirmUnlockBtn.addEventListener("click", async () => {
+          const alert = document.getElementById("pinModalAlert");
+          if (alert) alert.classList.add("d-none");
+          const passwordVal = document.getElementById("unlockPinInput")?.value || "";
+          if (!passwordVal) {
+            if (alert) {
+              alert.textContent = I18N.t('int_password_required') || "Password is required";
+              alert.className = "alert alert-danger";
+              alert.classList.remove("d-none");
+            }
+            return;
+          }
+          const token = getToken();
+          if (!token) {
+            window.location = "/ui/admin/login";
+            return;
+          }
+          const resp = await fetch("/api/admin/verify-password", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ password: passwordVal }),
+          });
+          if (!resp.ok) {
+            if (alert) {
+              alert.textContent = I18N.t('int_password_incorrect') || "Incorrect password";
+              alert.className = "alert alert-danger";
+              alert.classList.remove("d-none");
+            }
+            return;
+          }
+          isUnlocked = true;
+          if (alert) alert.classList.add("d-none");
+
+          // Hide the protection overlay
+          const overlay = document.getElementById("protectedOverlay");
+          if (overlay) overlay.style.display = "none";
+
+          // Hide the password modal
+          const pinModalEl = document.getElementById("pinModal");
+          if (pinModalEl) {
+            const modal = bootstrap.Modal.getInstance(pinModalEl);
+            if (modal) modal.hide();
+          }
+
+          // Enable all inputs
+          setPmsInputsDisabled(false);
+          if (currentData) {
+            renderProvider(currentData.messaging_provider || "meta", currentData);
+            renderPmsCard(currentData);
+            renderRoomQrSection(currentData);
+          }
+
+          // Trigger integrations onboarding tour after password verification
+          if (typeof window.startOnboarding === 'function' && !localStorage.getItem('integrations_tour_seen')) {
+            setTimeout(() => window.startOnboarding(), 500);
+          }
+        });
+      }
+
+      // PMS Configure button - opens modal OR redirects to PRO upgrade
+      const configurePmsBtn = document.getElementById("configurePmsBtn");
+      if (configurePmsBtn) {
+        configurePmsBtn.addEventListener("click", () => {
+          // Non-PRO users - redirect to upgrade page (preserve language)
+          if (configurePmsBtn.dataset.needsPro === "true") {
+            const currentLang = localStorage.getItem('app_lang') || 'en';
+            window.location.href = "/upgrade-pro?lang=" + currentLang;
+            return;
+          }
+          // PRO users - need password verification to open modal
+          if (!isUnlocked) return;
+          const modalEl = document.getElementById("pmsConfigModal");
+          if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+          }
+        });
+      }
+
+      document.getElementById("msgProviderSelect").addEventListener("change", (e) => toggleMsgModalFields(e.target.value));
+      document.getElementById("saveMsgConfigBtn").addEventListener("click", saveMsgConfig);
+      document.getElementById("testPmsBtn").addEventListener("click", testPmsConnection);
+
+      // WhatsApp BYON: Test connection and copy buttons
+      const testWaBtn = document.getElementById("testWaBtn");
+      if (testWaBtn) testWaBtn.addEventListener("click", testWaConnection);
+      const copyWaWebhookBtn = document.getElementById("copyWaWebhookBtn");
+      if (copyWaWebhookBtn) copyWaWebhookBtn.addEventListener("click", () => copyToClipboard("waWebhookUrl"));
+      const copyWaVerifyBtn = document.getElementById("copyWaVerifyBtn");
+      if (copyWaVerifyBtn) copyWaVerifyBtn.addEventListener("click", () => copyToClipboard("waVerifyToken"));
+
+      // LINE: Test connection and copy buttons
+      const testLineBtn = document.getElementById("testLineBtn");
+      if (testLineBtn) testLineBtn.addEventListener("click", testLineConnection);
+      const copyLineWebhookBtn = document.getElementById("copyLineWebhookBtn");
+      if (copyLineWebhookBtn) copyLineWebhookBtn.addEventListener("click", () => copyToClipboard("lineWebhookUrl"));
+
+      const roomQrBtn = document.getElementById("roomQrGenerateBtn");
+      if (roomQrBtn) {
+        roomQrBtn.addEventListener("click", generateRoomQrs);
+      }
+      const roomQrPrintBtn = document.getElementById("roomQrPrintBtn");
+      if (roomQrPrintBtn) {
+        roomQrPrintBtn.addEventListener("click", () => window.print());
+      }
+      document.getElementById("savePmsBtn").addEventListener("click", savePmsConfig);
+
+      // Cloudbeds event listeners
+      const pmsTypeSelect = document.getElementById("pmsType");
+      if (pmsTypeSelect) {
+        pmsTypeSelect.addEventListener("change", (e) => handlePmsTypeChange(e.target.value));
+      }
+      const cloudbedsAuthMethodSelect = document.getElementById("cloudbedsAuthMethod");
+      if (cloudbedsAuthMethodSelect) {
+        cloudbedsAuthMethodSelect.addEventListener("change", handleCloudbedsAuthMethodChange);
+      }
+      const connectCloudbedsBtn = document.getElementById("connectCloudbedsBtn");
+      if (connectCloudbedsBtn) {
+        connectCloudbedsBtn.addEventListener("click", connectCloudbeds);
+      }
+      const disconnectCloudbedsBtn = document.getElementById("disconnectCloudbedsBtn");
+      if (disconnectCloudbedsBtn) {
+        disconnectCloudbedsBtn.addEventListener("click", disconnectCloudbeds);
+      }
+
+      const switchBtn = document.getElementById("switchPlatformBtn");
+      if (switchBtn) {
+        switchBtn.addEventListener("click", async () => {
+          if (!isUnlocked) return; // Page-level protection handles this
+          const token = getToken();
+          if (!token) {
+            window.location = "/ui/admin/login";
+            return;
+          }
+          const resp = await fetch("/api/admin/integrations", {
+            method: "PUT",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              messaging_provider: "meta",
+              whatsapp_phone_id: null,
+              whatsapp_access_token: null,
+              whatsapp_business_account_id: null,
+              line_channel_secret: null,
+              line_channel_access_token: null,
+            }),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            renderProvider(data.messaging_provider || "meta", data);
+            showAlert(I18N.t('int_switch_platform_success'), "success");
+          } else {
+            showAlert(I18N.t('int_switch_platform_failed'), "danger");
+          }
+        });
+      }
+    });
+  </script>
+  <div id="notificationToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/admin-sidebar.js?v=2"></script>
+  <script src="/static/js/notifications.js"></script>
+  <script src="/static/js/subscription.js"></script>
+  <script>
+    // Hide PRO upgrade button for Thailand (PMS not available for LINE yet)
+    function hideProButtonForThailand() {
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      if (hotelCountry === 'TH') {
+        document.querySelectorAll('a[href*="/upgrade-pro"]').forEach(btn => {
+          btn.style.display = 'none';
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', hideProButtonForThailand);
+
+  </script>
+</body>
+
+</html>

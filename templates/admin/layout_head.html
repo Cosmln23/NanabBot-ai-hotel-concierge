@@ -1,0 +1,28 @@
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/static/logo-icon.png">
+  <link rel="apple-touch-icon" href="/static/logo-icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css">
+  <link rel="stylesheet" href="/static/style.css?v=2">
+  <script src="/static/js/i18n.js?v=9"></script>
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+  <script src="/static/js/onboarding.js?v=1"></script>
+  <script>
+    (function () {
+      const tokenKey = "token";
+      function getCookie(name) {
+        const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+        return match ? decodeURIComponent(match[1]) : "";
+      }
+      const urlToken = new URLSearchParams(window.location.search).get("token");
+      const cookieToken = getCookie("admin_token");
+      if (urlToken) {
+        localStorage.setItem(tokenKey, urlToken);
+        document.cookie = `admin_token=${encodeURIComponent(urlToken)}; path=/; Max-Age=5184000; SameSite=Lax`;
+      } else if (!localStorage.getItem(tokenKey) && cookieToken) {
+        localStorage.setItem(tokenKey, cookieToken);
+      }
+    })();
+  </script>

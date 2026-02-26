@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Cookie Consent + Analytics -->
+  <script src="/static/js/cookie-consent.js?v=2" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support & Help Center - AI Hotel Suite</title>
+  <meta name="description"
+    content="AI Hotel Suite Support Center. Setup guides, troubleshooting, and contact info for hotel chatbot assistance.">
+  <link rel="canonical" href="https://yourdomain.com/support">
+  <meta name="robots" content="index, follow">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Kanit:wght@300;400;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              teal: '#14b8a6',
+              accent: '#2dd4bf',
+              slate: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            thai: ['Kanit', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #fafaf9;
+    }
+
+    [lang="th"] {
+      font-family: 'Kanit', sans-serif !important;
+    }
+
+    .prose h2 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1c1917;
+    }
+
+    .prose h3 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #44403c;
+    }
+
+    .prose p {
+      margin-bottom: 1rem;
+      line-height: 1.7;
+      color: #78716c;
+    }
+
+    .prose ul {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+      list-style-type: disc;
+      color: #78716c;
+    }
+
+    .prose li {
+      margin-bottom: 0.5rem;
+    }
+
+    .prose a {
+      color: #1c1917;
+    }
+
+    .prose a:hover {
+      text-decoration: underline;
+    }
+
+    .prose strong {
+      color: #1c1917;
+    }
+
+    .faq-item {
+      border: 1px solid #e7e5e4;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f5f5f4;
+      transition: background 0.2s;
+    }
+
+    .faq-question:hover {
+      background: #e7e5e4;
+    }
+
+    .faq-answer {
+      padding: 0 1.5rem 1.5rem;
+      display: none;
+    }
+
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased min-h-screen flex flex-col relative">
+
+  <div class="absolute inset-0 z-0 bg-stone-50">
+  </div>
+
+  <!-- Header -->
+  <nav class="relative z-50 py-6 px-8 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 group">
+      <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+      <span class="text-2xl font-medium tracking-tight text-stone-900">AI Hotel Suite</span>
+    </a>
+    <!-- Language buttons removed -->
+  </nav>
+
+  <div class="container mx-auto px-4 py-8 relative z-10 flex-grow">
+    <div class="max-w-3xl mx-auto">
+
+      <!-- English -->
+      <div id="content-en" class="prose">
+        <h1 class="text-3xl font-bold mb-2 text-stone-900">Support & Help Center</h1>
+        <p class="text-stone-500 mb-8 text-sm">Get help with AI Hotel Suite - Your AI Hotel Concierge</p>
+
+        <h2>Contact Support</h2>
+        <p>Need help? Our team is here to assist you.</p>
+        <ul>
+          <li><strong>Email:</strong> <a href="mailto:support@yourdomain.com">support@yourdomain.com</a></li>
+          <li><strong>Response Time:</strong> Within 24 hours (business days)</li>
+        </ul>
+
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">How do I get started with AI Hotel Suite?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>Getting started is easy:</p>
+            <ol class="list-decimal pl-5 mt-2">
+              <li>Sign up for a free 7-day trial at yourdomain.com</li>
+              <li>Configure your hotel information, rooms, and services</li>
+              <li>Connect your WhatsApp or LINE account</li>
+              <li>Print QR codes for guest rooms</li>
+              <li>Start receiving and responding to guest inquiries automatically</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">How does the free trial work?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>Your 7-day free trial includes full access to all features:</p>
+            <ul class="list-disc pl-5 mt-2">
+              <li>Unlimited AI-powered guest messages</li>
+              <li>WhatsApp and LINE integration</li>
+              <li>Task management system</li>
+              <li>Digital menu and QR codes</li>
+              <li>No credit card required to start</li>
+            </ul>
+            <p class="mt-2">After the trial ends, you can upgrade to continue using AI Hotel Suite.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">What messaging platforms do you support?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>AI Hotel Suite currently supports:</p>
+            <ul class="list-disc pl-5 mt-2">
+              <li><strong>WhatsApp Business API</strong> - Most popular worldwide</li>
+              <li><strong>LINE Official Account</strong> - Popular in Thailand, Japan, Taiwan</li>
+            </ul>
+            <p class="mt-2">More platforms coming soon!</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">How do I connect my PMS (Property Management System)?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>Go to Settings > Integrations in your dashboard. We support:</p>
+            <ul class="list-disc pl-5 mt-2">
+              <li><strong>Cloudbeds (Coming Soon)</strong> - Click "Connect" and authorize via OAuth</li>
+              <li><strong>Other PMS</strong> - Contact support for custom integrations</li>
+            </ul>
+            <p class="mt-2">PMS integration enables automatic guest recognition and personalized responses.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">How do I cancel my subscription?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>You can cancel anytime:</p>
+            <ol class="list-decimal pl-5 mt-2">
+              <li>Go to Settings > Subscription</li>
+              <li>Click "Manage Subscription"</li>
+              <li>Select "Cancel Subscription"</li>
+            </ol>
+            <p class="mt-2">You'll retain access until the end of your billing period. No future charges will be made.
+            </p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="text-stone-900 font-medium">What languages does the AI chatbot support?</span>
+            <svg class="w-5 h-5 text-stone-500 faq-icon transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div class="faq-answer text-stone-600">
+            <p>AI Hotel Suite's AI automatically detects and responds in the guest's language. We support 40+ languages
+              including:</p>
+            <ul class="list-disc pl-5 mt-2">
+              <li>English, Thai, Chinese, Japanese, Korean</li>
+              <li>Spanish, French, German, Italian, Portuguese</li>
+              <li>Russian, Arabic, Hindi, and many more</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2>Technical Support</h2>
+        <h3>Common Issues</h3>
+        <ul>
+          <li><strong>Messages not being received:</strong> Check your WhatsApp/LINE integration status in Settings</li>
+          <li><strong>AI responses not accurate:</strong> Update your hotel information and AI personality settings</li>
+          <li><strong>QR codes not working:</strong> Regenerate QR codes from the QR Code section</li>
+        </ul>
+
+        <h3>System Requirements</h3>
+        <ul>
+          <li>Modern web browser (Chrome, Safari, Firefox, Edge)</li>
+          <li>WhatsApp Business Account or LINE Official Account</li>
+          <li>Stable internet connection</li>
+        </ul>
+
+        <h2>Business Inquiries</h2>
+        <p>For partnerships, enterprise plans, or custom integrations:</p>
+        <ul>
+          <li>Email: <a href="mailto:contact@yourdomain.com">contact@yourdomain.com</a></li>
+        </ul>
+      </div>
+
+      <!-- Other languages removed -->
+
+      <!-- Back Button -->
+      <div class="mt-12 pt-8 border-t border-stone-200 text-center">
+        <a href="/"
+          class="inline-flex items-center gap-2 bg-stone-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-black transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+            </path>
+          </svg>
+          <span id="back-btn">Back to Home</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const backBtnText = {
+      en: "Back to Home"
+    };
+
+    function toggleFaq(element) {
+      const item = element.parentElement;
+      item.classList.toggle('open');
+    }
+
+    document.documentElement.lang = 'en';
+  </script>
+</body>
+
+</html>

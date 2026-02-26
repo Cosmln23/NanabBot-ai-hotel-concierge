@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  {% include 'admin/layout_head.html' %}
+  <title>Admin - Conversations</title>
+  <style>
+    .main-content {
+      overflow-x: hidden;
+      background-image: linear-gradient(rgba(250, 250, 249, 0.75), rgba(250, 250, 249, 0.75)), url('/static/pexels-knownasovan-62693.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <a href="/ui/admin/tasks" class="d-flex align-items-center gap-2 text-decoration-none text-white">
+            <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+            <span class="fs-4 fw-bold">AI Hotel Suite</span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav d-flex flex-column">
+        <a href="#" id="tasksLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_tasks">Tasks</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fa-solid fa-comments"></i> <span data-i18n="nav_conversations">Conversations</span>
+        </a>
+        <div class="flex-grow-1"></div>
+        <hr class="my-2 text-muted opacity-50">
+        <a href="#" id="aiSettingsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-brain"></i> <span data-i18n="nav_ai_settings">AI Settings</span>
+        </a>
+        <a href="#" id="integrationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-plug"></i> <span data-i18n="nav_integrations">Integrations</span>
+        </a>
+        <a href="#" id="subscriptionLinkSidebar" class="nav-item d-none">
+          <i class="fa-solid fa-credit-card"></i> <span data-i18n="nav_subscription">Subscription</span>
+        </a>
+        <a href="#" id="helpLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-circle-question"></i> <span data-i18n="nav_help">Help</span>
+        </a>
+      </nav>
+      {% include 'admin/sidebar_footer.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Trial Banner -->
+      <div id="trialBanner" class="alert alert-warning d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <span data-i18n="trial_banner_text">Trial:</span>
+            <strong id="trialDaysLeft">0</strong>
+            <span data-i18n="trial_days_remaining">days remaining</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-dark btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial Expired Banner -->
+      <div id="trialExpiredBanner" class="alert alert-danger d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span data-i18n="trial_expired_text">Trial expired! Your bot is stopped. Upgrade to continue.</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-danger btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1" data-i18n="conv_title">Conversations</h2>
+          <p class="text-muted mb-0" data-i18n="conv_subtitle">Monitor guest interactions and bot responses.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary position-relative" id="notificationBell"
+            data-i18n-title="notif_label" aria-label="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="notificationMute"
+            data-i18n-title="notif_sound_on" aria-label="Sound">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+          <select id="lang-select" class="form-select form-select-sm lang-select-sm">
+            <option value="en" data-i18n="lang_en">🇬🇧 English</option>
+            <option value="ro" data-i18n="lang_ro">🇷🇴 Română</option>
+            <option value="th" data-i18n="lang_th">🇹🇭 ไทย</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 py-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <h5 class="mb-0 text-secondary" data-i18n="conv_active">Active Conversations</h5>
+            <div class="input-group input-group-sm" style="width: 250px;">
+              <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+              <input type="text" class="form-control bg-light border-start-0" placeholder="Search conversations..."
+                data-i18n-placeholder="conv_search_ph">
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="conversations-table">
+            <thead class="bg-light">
+              <tr>
+                <th class="border-top-0" data-i18n="th_id">ID</th>
+                <th class="border-top-0" data-i18n="th_hotel">Hotel</th>
+                <th class="border-top-0" data-i18n="th_guest">Guest</th>
+                <th class="border-top-0" data-i18n="th_stay">Stay</th>
+                <th class="border-top-0" data-i18n="th_room">Room</th>
+                <th class="border-top-0" data-i18n="th_guest_state">Guest State</th>
+                <th class="border-top-0" data-i18n="th_last_message">Last Message</th>
+                <th class="border-top-0 text-center" data-i18n="th_open_tasks">Open Tasks</th>
+                <th class="border-top-0" data-i18n="th_updated">Updated</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+          <div class="text-muted small">
+            <span data-i18n="pagination_showing">Showing</span>
+            <strong id="paginationFrom">0</strong>-<strong id="paginationTo">0</strong>
+            <span data-i18n="pagination_of">of</span>
+            <strong id="paginationTotal">0</strong>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" id="prevPageItem">
+                <a class="page-link" href="#" id="prevPage" data-i18n="pagination_prev">Previous</a>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link" id="currentPageInfo">1 / 1</span>
+              </li>
+              <li class="page-item" id="nextPageItem">
+                <a class="page-link" href="#" id="nextPage" data-i18n="pagination_next">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div id="notificationToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+
+  {% include 'admin/change_password_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/admin-sidebar.js?v=2"></script>
+  <script src="/static/js/notifications.js"></script>
+  <script src="/static/js/subscription.js"></script>
+  <script>
+    const tokenKey = "token";
+    const urlToken = new URLSearchParams(window.location.search).get("token");
+    if (urlToken) localStorage.setItem(tokenKey, urlToken);
+
+    function getToken() {
+      return localStorage.getItem(tokenKey);
+    }
+
+    function handleUnauthorized() {
+      localStorage.removeItem(tokenKey);
+      document.cookie = "admin_token=; Max-Age=0; path=/";
+      window.location = "/ui/admin/login";
+    }
+
+    function authQuery() {
+      const t = getToken();
+      return t ? `?token=${encodeURIComponent(t)}` : "";
+    }
+
+    let currentPage = 1;
+    let totalPages = 1;
+
+    async function loadConversations(page = 1) {
+      const token = getToken();
+      if (!token) {
+        handleUnauthorized();
+        return;
+      }
+      currentPage = page;
+      const tbody = document.querySelector("#conversations-table tbody");
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">${I18N.t('conv_loading')}</td></tr>`;
+      const resp = await fetch(`/admin/conversations?page=${page}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!resp.ok) {
+        handleUnauthorized();
+        return;
+      }
+      const response = await resp.json();
+      const data = response.conversations || [];
+      const pagination = response.pagination || {};
+
+      // Update pagination info
+      totalPages = pagination.total_pages || 1;
+      const totalCount = pagination.total_count || 0;
+      const limit = pagination.limit || 25;
+      const from = totalCount > 0 ? (page - 1) * limit + 1 : 0;
+      const to = Math.min(page * limit, totalCount);
+
+      document.getElementById('paginationFrom').textContent = from;
+      document.getElementById('paginationTo').textContent = to;
+      document.getElementById('paginationTotal').textContent = totalCount;
+      document.getElementById('currentPageInfo').textContent = `${page} / ${totalPages}`;
+
+      // Enable/disable pagination buttons
+      document.getElementById('prevPageItem').classList.toggle('disabled', page <= 1);
+      document.getElementById('nextPageItem').classList.toggle('disabled', page >= totalPages);
+
+      tbody.innerHTML = "";
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">${I18N.t('conv_empty')}</td></tr>`;
+        return;
+      }
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+
+        // Status Badge
+        const statusKey = row.status ? `status_${row.status.toLowerCase()}` : null;
+        const statusLabel = statusKey ? (I18N.t(statusKey) || row.status) : (row.status || "");
+        const statusBadge = `<span class="badge ${row.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}">${statusLabel}</span>`;
+
+        // Open Tasks Badge
+        let tasksBadge = row.open_tasks_count > 0
+          ? `<span class="badge bg-warning text-white rounded-pill">${row.open_tasks_count}</span>`
+          : `<span class="text-muted">-</span>`;
+
+        const pausedBadge = row.is_bot_paused ? `<span class="badge bg-danger ms-1">${I18N.t('conv_on_hold')}</span>` : "";
+        const guestStateKey = row.guest_state ? `guest_state_${row.guest_state.toLowerCase()}` : null;
+        const guestStateLabel = guestStateKey ? (I18N.t(guestStateKey) || row.guest_state) : (row.guest_state || "-");
+
+        // Create row with safe text content (NO XSS)
+        tr.innerHTML = `
+          <td><a href="/ui/admin/conversations/${row.id}${authQuery()}" class="fw-bold text-decoration-none">#${row.id}</a></td>
+          <td><span class="text-dark fw-medium">${row.hotel_id}</span></td>
+          <td><div class="fw-semibold"><span class="guest-name-safe"></span> ${pausedBadge}</div></td>
+          <td>${row.stay_id ?? "-"}</td>
+          <td><span class="fw-medium">${row.room_number || "-"}</span></td>
+          <td><small class="text-muted">${guestStateLabel}</small></td>
+          <td><small class="text-muted text-truncate d-inline-block last-message-safe" style="max-width: 140px; font-size: 0.75rem;"></small></td>
+          <td class="text-center">${tasksBadge}</td>
+          <td class="text-muted small">
+            <div class="d-flex align-items-center justify-content-between">
+              <span>${row.updated_at ? new Date(row.updated_at).toLocaleString() : ""}</span>
+              <span class="d-flex gap-1 ms-2">
+                <button class="btn btn-sm btn-outline-secondary gdpr-export-btn py-0 px-1" data-guest-id="${row.guest_id}" title="${I18N.t('gdpr_export') || 'Export Guest Data'}">
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger gdpr-delete-btn py-0 px-1" data-guest-id="${row.guest_id}" title="${I18N.t('gdpr_delete') || 'Delete Guest Data'}">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </span>
+            </div>
+          </td>
+        `;
+
+        // ✅ SAFE: Set user content via textContent (escapes HTML automatically)
+        const guestNameSpan = tr.querySelector('.guest-name-safe');
+
+        // Display based on tier and channel
+        if (window.hotelTier === 'pro') {
+          // Pro tier: Show guest full name from PMS
+          guestNameSpan.textContent = row.guest_name || `${I18N.t('conv_guest_generic')} ${row.guest_id}`;
+        } else {
+          // Basic/Free tier: Show based on channel
+          if (row.channel === 'line') {
+            // LINE: Display name > truncated LINE ID > Guest X
+            if (row.guest_name) {
+              guestNameSpan.textContent = row.guest_name;
+            } else if (row.line_user_id) {
+              guestNameSpan.textContent = `LINE: ${row.line_user_id.substring(0, 8)}...`;
+            } else {
+              guestNameSpan.textContent = `${I18N.t('conv_guest_generic')} ${row.guest_id}`;
+            }
+          } else {
+            // WhatsApp: Phone number > Guest X
+            guestNameSpan.textContent = row.guest_phone || `${I18N.t('conv_guest_generic')} ${row.guest_id}`;
+          }
+        }
+
+        const lastMessageCell = tr.querySelector('.last-message-safe');
+        lastMessageCell.textContent = row.last_message_text || "";
+
+        // Make entire row clickable
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', (e) => {
+          // Don't navigate if clicking on a link (ID column already has its own link)
+          if (e.target.tagName === 'A') return;
+          if (e.target.closest('.gdpr-export-btn') || e.target.closest('.gdpr-delete-btn')) return;
+          window.location.href = `/ui/admin/conversations/${row.id}${authQuery()}`;
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+    window.loadConversations = loadConversations;
+
+    document.getElementById("tasksLinkSidebar").href = "/ui/admin/tasks" + authQuery();
+    document.getElementById("aiSettingsLinkSidebar").href = "/ui/admin/settings/ai" + authQuery();
+    document.getElementById("integrationsLinkSidebar").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("helpLinkSidebar").href = "/ui/admin/help" + authQuery();
+
+    // Initialize language selector
+    I18N.initSelect('lang-select');
+
+    // Reload conversations when language changes
+    window.addEventListener('languageChanged', () => {
+      loadConversations(currentPage);
+    });
+
+    // Load subscription tier for display logic
+    async function loadSubscriptionTier() {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const resp = await fetch("/admin/subscription-status", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        window.hotelTier = data.tier || 'free';
+      } catch (err) {
+        window.hotelTier = 'free';
+      }
+    }
+
+    // Pagination event listeners
+    document.getElementById('prevPage').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        loadConversations(currentPage - 1);
+      }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        loadConversations(currentPage + 1);
+      }
+    });
+
+    // Load tier first, then conversations
+    loadSubscriptionTier().then(() => loadConversations(1));
+
+    // ---------- GDPR Export / Delete ----------
+    document.addEventListener('click', async (e) => {
+      const exportBtn = e.target.closest('.gdpr-export-btn');
+      if (exportBtn) {
+        const guestId = exportBtn.dataset.guestId;
+        const token = getToken();
+        if (!token) { handleUnauthorized(); return; }
+        try {
+          const resp = await fetch(`/admin/guests/${guestId}/export`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (resp.status === 401) { handleUnauthorized(); return; }
+          if (!resp.ok) {
+            alert(I18N.t('gdpr_export_error') || 'Export failed');
+            return;
+          }
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `guest_${guestId}_export.html`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert(I18N.t('gdpr_export_error') || 'Export failed');
+        }
+        return;
+      }
+
+      const deleteBtn = e.target.closest('.gdpr-delete-btn');
+      if (deleteBtn) {
+        const guestId = deleteBtn.dataset.guestId;
+        const confirmMsg = I18N.t('gdpr_delete_confirm') || 'Are you sure you want to permanently anonymize this guest\'s data? This cannot be undone.';
+        if (!confirm(confirmMsg)) return;
+        const token = getToken();
+        if (!token) { handleUnauthorized(); return; }
+        try {
+          const resp = await fetch(`/admin/guests/${guestId}`, {
+            method: 'DELETE',
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (resp.status === 401) { handleUnauthorized(); return; }
+          if (!resp.ok) {
+            alert(I18N.t('gdpr_delete_error') || 'Deletion failed');
+            return;
+          }
+          const data = await resp.json();
+          alert((I18N.t('gdpr_delete_success') || 'Guest data anonymized.') + ` (${data.anonymized_records} records)`);
+          loadConversations(currentPage);
+        } catch (err) {
+          alert(I18N.t('gdpr_delete_error') || 'Deletion failed');
+        }
+      }
+    });
+
+    // Hide PRO upgrade button for Thailand (PMS not available for LINE yet)
+    function hideProButtonForThailand() {
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      if (hotelCountry === 'TH') {
+        document.querySelectorAll('a[href*="/upgrade-pro"]').forEach(btn => {
+          btn.style.display = 'none';
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', hideProButtonForThailand);
+  </script>
+</body>
+
+</html>

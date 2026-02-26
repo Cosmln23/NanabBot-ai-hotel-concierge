@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% include 'admin/layout_head.html' %}
+  <title>Help Center</title>
+  <style>
+    .help-card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .help-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0d6efd, #0a58ca);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .step-card {
+      border-left: 3px solid #0d6efd;
+      background: #f8f9fa;
+    }
+
+    .nav-tabs .nav-link {
+      border: none;
+      color: #6c757d;
+      font-weight: 500;
+      padding: 12px 20px;
+    }
+
+    .nav-tabs .nav-link.active {
+      color: #0d6efd;
+      border-bottom: 3px solid #0d6efd;
+      background: transparent;
+    }
+
+    .nav-tabs .nav-link:hover:not(.active) {
+      color: #0d6efd;
+      border-bottom: 3px solid #dee2e6;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background-color: #e7f1ff;
+      color: #0d6efd;
+    }
+
+    .provider-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      opacity: 0.7;
+    }
+
+    .copy-btn:hover {
+      opacity: 1;
+    }
+
+    .tip-box {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+      border-left: 4px solid #ffc107;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .warning-box {
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+      border-left: 4px solid #dc3545;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .success-box {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      border-left: 4px solid #28a745;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <a href="/ui/admin/tasks" class="d-flex align-items-center gap-2 text-decoration-none text-white">
+            <img src="/static/logo.png" alt="AI Hotel Suite" style="height: 40px; width: auto; border-radius: 8px;">
+            <span class="fs-4 fw-bold">AI Hotel Suite</span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav d-flex flex-column">
+        <a href="#" id="tasksLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_tasks">Tasks</span>
+        </a>
+        <a href="#" id="conversationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-comments"></i> <span data-i18n="nav_conversations">Conversations</span>
+        </a>
+        <div class="flex-grow-1"></div>
+        <hr class="my-2 text-muted opacity-50">
+        <a href="#" id="aiSettingsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-brain"></i> <span data-i18n="nav_ai_settings">AI Settings</span>
+        </a>
+        <a href="#" id="integrationsLinkSidebar" class="nav-item">
+          <i class="fa-solid fa-plug"></i> <span data-i18n="nav_integrations">Integrations</span>
+        </a>
+        <a href="#" id="subscriptionLinkSidebar" class="nav-item d-none">
+          <i class="fa-solid fa-credit-card"></i> <span data-i18n="nav_subscription">Subscription</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fa-solid fa-circle-question"></i> <span data-i18n="nav_help">Help</span>
+        </a>
+      </nav>
+      {% include 'admin/sidebar_footer.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Trial Banner -->
+      <div id="trialBanner" class="alert alert-warning d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <span data-i18n="trial_banner_text">Trial:</span>
+            <strong id="trialDaysLeft">0</strong>
+            <span data-i18n="trial_days_remaining">days remaining</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-dark btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial Expired Banner -->
+      <div id="trialExpiredBanner" class="alert alert-danger d-none mb-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span data-i18n="trial_expired_text">Trial expired! Your bot is stopped. Upgrade to continue.</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/upgrade" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-crown me-1"></i><span data-i18n="trial_upgrade_btn">Upgrade Basic</span>
+            </a>
+            <a href="/upgrade-pro" class="btn btn-danger btn-sm">
+              <i class="fa-solid fa-star me-1"></i><span data-i18n="trial_upgrade_pro_btn">Upgrade PRO</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1"><i class="fa-solid fa-circle-question me-2 text-primary"></i><span
+              data-i18n="help_title">Help Center</span></h2>
+          <p class="text-muted mb-0" data-i18n="help_subtitle">Setup guides, configuration tips, and troubleshooting.
+          </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <select id="lang-select" class="form-select form-select-sm lang-select-sm">
+            <option value="en" data-i18n="lang_en">English</option>
+            <option value="ro" data-i18n="lang_ro">Romana</option>
+            <option value="th" data-i18n="lang_th">Thai</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-tabs mb-4" id="helpTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="quickstart-tab" data-bs-toggle="tab" data-bs-target="#quickstart"
+            type="button" role="tab">
+            <i class="fa-solid fa-rocket me-2"></i><span data-i18n="help_tab_quickstart">Quick Start</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="connections-tab" data-bs-toggle="tab" data-bs-target="#connections" type="button"
+            role="tab">
+            <i class="fa-solid fa-plug me-2"></i><span data-i18n="help_tab_connections">Connection Guides</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="features-tab" data-bs-toggle="tab" data-bs-target="#features" type="button"
+            role="tab">
+            <i class="fa-solid fa-sliders me-2"></i><span data-i18n="help_tab_features">Features</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq" type="button" role="tab">
+            <i class="fa-solid fa-question-circle me-2"></i><span data-i18n="help_tab_faq">FAQ</span>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="helpTabContent">
+
+        <!-- Quick Start Tab -->
+        <div class="tab-pane fade show active" id="quickstart" role="tabpanel">
+          <div class="row">
+            <div class="col-12">
+              <div class="alert alert-primary mb-4">
+                <i class="fa-solid fa-lightbulb me-2"></i>
+                <strong data-i18n="help_quickstart_intro_title">Get your hotel bot running in 4 steps!</strong>
+                <span data-i18n="help_quickstart_intro_text">Follow this guide to configure and activate your AI
+                  assistant.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 1 -->
+          <div class="card step-card mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start gap-3">
+                <div class="step-number">1</div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-2" data-i18n="help_step1_title">Configure AI Settings</h5>
+                  <p class="text-muted mb-3" data-i18n="help_step1_desc">Set your hotel name, welcome tone, WiFi
+                    credentials, breakfast hours, and other policies that the bot will use when answering guests.</p>
+                  <a href="#" id="goToAiSettings" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_go_to_ai_settings">Go to AI
+                      Settings</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="card step-card mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start gap-3">
+                <div class="step-number">2</div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-2" data-i18n="help_step2_title">Connect Messaging Channel</h5>
+                  <p class="text-muted mb-3" data-i18n="help_step2_desc">Connect your LINE (Thailand) or WhatsApp
+                    (Europe) account. You'll need API credentials from LINE Developers or Meta for Business.</p>
+                  <a href="#" id="goToIntegrations" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_go_to_integrations">Go to
+                      Integrations</span>
+                  </a>
+                  <button class="btn btn-sm btn-outline-secondary ms-2"
+                    onclick="document.getElementById('connections-tab').click();">
+                    <i class="fa-solid fa-book me-1"></i><span data-i18n="help_view_guide">View Guide</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="card step-card mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start gap-3">
+                <div class="step-number">3</div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-2" data-i18n="help_step3_title">Print QR Codes</h5>
+                  <p class="text-muted mb-3" data-i18n="help_step3_desc">Generate and print QR codes for each room.
+                    Place them in visible locations (desk, nightstand, bathroom). Guests scan to connect instantly.</p>
+                  <a href="#" id="goToIntegrationsQR" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-qrcode me-1"></i><span data-i18n="help_download_qr">Download QR Codes</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="card step-card mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start gap-3">
+                <div class="step-number">4</div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-2" data-i18n="help_step4_title">Test the Bot!</h5>
+                  <p class="text-muted mb-3" data-i18n="help_step4_desc">Use your phone to scan a room QR code or send a
+                    test message. Verify the bot responds correctly with your hotel information.</p>
+                  <div class="success-box">
+                    <i class="fa-solid fa-check-circle me-2 text-success"></i>
+                    <span data-i18n="help_step4_example">Example: Send "Connect Room 101" or scan QR code, then ask
+                      "What's the WiFi password?"</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Restart Tour -->
+          <div class="tip-box mt-4">
+            <i class="fa-solid fa-graduation-cap me-2 text-warning"></i>
+            <span data-i18n="help_restart_tour_text">Want to see the guided tour again?</span>
+            <button class="btn btn-sm btn-outline-primary ms-2" onclick="restartOnboarding()">
+              <i class="fa-solid fa-rotate me-1"></i><span data-i18n="help_restart_tour_btn">Restart Tour</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Connection Guides Tab -->
+        <div class="tab-pane fade" id="connections" role="tabpanel">
+
+          <!-- Provider Selection -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card help-card h-100" id="lineGuideCard" style="cursor: pointer;">
+                <div class="card-body text-center py-4">
+                  <div class="mb-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="48">
+                  </div>
+                  <h5 class="mb-2">LINE</h5>
+                  <span class="badge bg-success provider-badge" data-i18n="help_recommended_th">Recommended for
+                    Thailand</span>
+                  <p class="text-muted small mt-2 mb-0" data-i18n="help_line_desc">Connect LINE Official Account for
+                    Thai market hotels.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card help-card h-100" id="whatsappGuideCard" style="cursor: pointer;">
+                <div class="card-body text-center py-4">
+                  <div class="mb-3">
+                    <i class="fa-brands fa-whatsapp fa-3x text-success"></i>
+                  </div>
+                  <h5 class="mb-2">WhatsApp</h5>
+                  <span class="badge bg-primary provider-badge" data-i18n="help_recommended_eu">Recommended for
+                    Europe</span>
+                  <p class="text-muted small mt-2 mb-0" data-i18n="help_whatsapp_desc">Connect WhatsApp Business for
+                    European market hotels.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LINE Guide (Hidden by default) -->
+          <div id="lineGuideContent" class="d-none">
+            <div class="d-flex align-items-center mb-3">
+              <button class="btn btn-sm btn-outline-secondary me-3" onclick="showProviderSelection()">
+                <i class="fa-solid fa-arrow-left me-1"></i><span data-i18n="btn_back">Back</span>
+              </button>
+              <h4 class="mb-0"><img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE"
+                  height="24" class="me-2">LINE Connection Guide</h4>
+            </div>
+
+            <div class="accordion" id="lineAccordion">
+              <!-- LINE Step 1 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#lineStep1">
+                    <span class="badge bg-primary me-2">1</span> <span data-i18n="help_line_step1_title">Create LINE
+                      Messaging API Channel</span>
+                  </button>
+                </h2>
+                <div id="lineStep1" class="accordion-collapse collapse show" data-bs-parent="#lineAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_line_step1_1">Go to <a href="https://developers.line.biz/"
+                          target="_blank">LINE Developers Console</a></li>
+                      <li data-i18n="help_line_step1_2">Create a new Provider (or use existing)</li>
+                      <li data-i18n="help_line_step1_3">Create a new <strong>Messaging API</strong> channel</li>
+                      <li data-i18n="help_line_step1_4">Link to your LINE Official Account</li>
+                    </ol>
+                    <div class="tip-box">
+                      <i class="fa-solid fa-lightbulb me-2 text-warning"></i>
+                      <span data-i18n="help_line_step1_tip">You can create a free LINE Official Account at
+                        manager.line.biz</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LINE Step 2 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#lineStep2">
+                    <span class="badge bg-primary me-2">2</span> <span data-i18n="help_line_step2_title">Get Your
+                      Credentials</span>
+                  </button>
+                </h2>
+                <div id="lineStep2" class="accordion-collapse collapse" data-bs-parent="#lineAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_line_step2_1">Open your Messaging API channel</li>
+                      <li data-i18n="help_line_step2_2">Go to <strong>Basic settings</strong> tab, copy <strong>Channel
+                          Secret</strong></li>
+                      <li data-i18n="help_line_step2_3">Go to <strong>Messaging API</strong> tab</li>
+                      <li data-i18n="help_line_step2_4">Under <strong>Channel access token</strong> section, click
+                        <strong>Issue</strong>
+                      </li>
+                    </ol>
+
+                    <div class="warning-box mb-3">
+                      <i class="fa-solid fa-exclamation-triangle me-2 text-danger"></i>
+                      <strong data-i18n="help_line_token_warning_title">⚠️ Do NOT use short-lived tokens!</strong>
+                      <p class="mb-0 mt-2" data-i18n="help_line_token_warning_text">
+                        In LINE Developers Console → Messaging API tab → Channel access token: Click
+                        <strong>"Issue"</strong>.
+                        Ensure you generate a <strong>LONG-LIVED token</strong> that does not expire.
+                        <span class="text-danger fw-bold">Do not use the 24-hour token</span>, or your bot will stop
+                        working tomorrow!
+                      </p>
+                    </div>
+
+                    <div class="tip-box">
+                      <i class="fa-solid fa-lightbulb me-2 text-warning"></i>
+                      <span data-i18n="help_line_step2_tip">After issuing the token, copy it immediately. You won't be
+                        able to see it again!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LINE Step 3 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#lineStep3">
+                    <span class="badge bg-primary me-2">3</span> <span data-i18n="help_line_step3_title">Configure in
+                      AI Hotel Suite</span>
+                  </button>
+                </h2>
+                <div id="lineStep3" class="accordion-collapse collapse" data-bs-parent="#lineAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_line_step3_1">Go to <strong>Integrations</strong> page</li>
+                      <li data-i18n="help_line_step3_2">Click <strong>Configure</strong> on Messaging Provider</li>
+                      <li data-i18n="help_line_step3_3">Select <strong>LINE</strong> from dropdown</li>
+                      <li data-i18n="help_line_step3_4">Paste your Channel Secret and Access Token</li>
+                      <li data-i18n="help_line_step3_5">Click <strong>Test Connection</strong></li>
+                      <li data-i18n="help_line_step3_6">Copy the <strong>Webhook URL</strong> that appears</li>
+                    </ol>
+                    <a href="#" id="goToIntegrationsLine" class="btn btn-sm btn-outline-primary">
+                      <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_go_to_integrations">Go to
+                        Integrations</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LINE Step 4 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#lineStep4">
+                    <span class="badge bg-primary me-2">4</span> <span data-i18n="help_line_step4_title">Configure
+                      Webhook in LINE</span>
+                  </button>
+                </h2>
+                <div id="lineStep4" class="accordion-collapse collapse" data-bs-parent="#lineAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_line_step4_1">Go back to LINE Developers Console</li>
+                      <li data-i18n="help_line_step4_2">Open Messaging API tab > Webhook settings</li>
+                      <li data-i18n="help_line_step4_3">Paste the Webhook URL from AI Hotel Suite</li>
+                      <li data-i18n="help_line_step4_4">Enable <strong>Use webhook</strong></li>
+                      <li data-i18n="help_line_step4_5">Click <strong>Verify</strong> to test</li>
+                    </ol>
+                    <div class="warning-box">
+                      <i class="fa-solid fa-exclamation-triangle me-2 text-danger"></i>
+                      <span data-i18n="help_line_step4_warning">Important: Disable auto-reply in LINE Official Account
+                        Manager to avoid duplicate messages.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LINE Troubleshooting -->
+            <div class="card mt-4">
+              <div class="card-header" data-i18n="help_common_errors">Common Errors</div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th data-i18n="help_error">Error</th>
+                        <th data-i18n="help_solution">Solution</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>Invalid token</code></td>
+                        <td data-i18n="help_line_err1_sol">Re-issue token in LINE Developers Console</td>
+                      </tr>
+                      <tr>
+                        <td><code>Webhook verification failed</code></td>
+                        <td data-i18n="help_line_err2_sol">Check firewall, ensure HTTPS is configured</td>
+                      </tr>
+                      <tr>
+                        <td data-i18n="help_line_err3">No messages received</td>
+                        <td data-i18n="help_line_err3_sol">Enable "Use webhook" in LINE settings</td>
+                      </tr>
+                      <tr>
+                        <td data-i18n="help_line_err4">Bot not responding</td>
+                        <td data-i18n="help_line_err4_sol">Disable auto-reply in LINE Manager</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp Guide (Hidden by default) -->
+          <div id="whatsappGuideContent" class="d-none">
+            <div class="d-flex align-items-center mb-3">
+              <button class="btn btn-sm btn-outline-secondary me-3" onclick="showProviderSelection()">
+                <i class="fa-solid fa-arrow-left me-1"></i><span data-i18n="btn_back">Back</span>
+              </button>
+              <h4 class="mb-0"><i class="fa-brands fa-whatsapp text-success me-2"></i>WhatsApp Connection Guide</h4>
+            </div>
+
+            <div class="accordion" id="whatsappAccordion">
+              <!-- WhatsApp Step 1 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#waStep1">
+                    <span class="badge bg-success me-2">1</span> <span data-i18n="help_wa_step1_title">Set Up Meta
+                      Business Account</span>
+                  </button>
+                </h2>
+                <div id="waStep1" class="accordion-collapse collapse show" data-bs-parent="#whatsappAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_wa_step1_1">Go to <a href="https://business.facebook.com/"
+                          target="_blank">Meta Business Suite</a></li>
+                      <li data-i18n="help_wa_step1_2">Create or use existing Business Account</li>
+                      <li data-i18n="help_wa_step1_3">Complete business verification (may take 1-3 days)</li>
+                    </ol>
+                    <div class="tip-box">
+                      <i class="fa-solid fa-lightbulb me-2 text-warning"></i>
+                      <span data-i18n="help_wa_step1_tip">Business verification requires official documents. Start this
+                        early!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Step 2 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#waStep2">
+                    <span class="badge bg-success me-2">2</span> <span data-i18n="help_wa_step2_title">Create WhatsApp
+                      App</span>
+                  </button>
+                </h2>
+                <div id="waStep2" class="accordion-collapse collapse" data-bs-parent="#whatsappAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_wa_step2_1">Go to <a href="https://developers.facebook.com/"
+                          target="_blank">Meta Developers</a></li>
+                      <li data-i18n="help_wa_step2_2">Create a new App > Select <strong>Business</strong> type</li>
+                      <li data-i18n="help_wa_step2_3">Add <strong>WhatsApp</strong> product to your app</li>
+                      <li data-i18n="help_wa_step2_4">Note your <strong>Phone Number ID</strong> and <strong>WABA
+                          ID</strong></li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Step 3 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#waStep3">
+                    <span class="badge bg-success me-2">3</span> <span data-i18n="help_wa_step3_title">Generate Access
+                      Token</span>
+                  </button>
+                </h2>
+                <div id="waStep3" class="accordion-collapse collapse" data-bs-parent="#whatsappAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_wa_step3_1">Go to Business Settings > System Users</li>
+                      <li data-i18n="help_wa_step3_2">Create a System User with Admin role</li>
+                      <li data-i18n="help_wa_step3_3">Assign WhatsApp assets to this user</li>
+                      <li data-i18n="help_wa_step3_4">Generate token with <code>whatsapp_business_messaging</code>
+                        permission</li>
+                    </ol>
+                    <div class="warning-box">
+                      <i class="fa-solid fa-exclamation-triangle me-2 text-danger"></i>
+                      <span data-i18n="help_wa_step3_warning">Use a permanent token (System User), not the temporary
+                        test token!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Step 4 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#waStep4">
+                    <span class="badge bg-success me-2">4</span> <span data-i18n="help_wa_step4_title">Configure in
+                      AI Hotel Suite</span>
+                  </button>
+                </h2>
+                <div id="waStep4" class="accordion-collapse collapse" data-bs-parent="#whatsappAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_wa_step4_1">Go to <strong>Integrations</strong> page</li>
+                      <li data-i18n="help_wa_step4_2">Click <strong>Configure</strong> on Messaging Provider</li>
+                      <li data-i18n="help_wa_step4_3">Select <strong>WhatsApp (Custom)</strong></li>
+                      <li data-i18n="help_wa_step4_4">Enter Phone Number ID, Access Token, WABA ID</li>
+                      <li data-i18n="help_wa_step4_5">Click <strong>Test Connection</strong></li>
+                      <li data-i18n="help_wa_step4_6">Copy <strong>Webhook URL</strong> and <strong>Verify
+                          Token</strong></li>
+                    </ol>
+                    <a href="#" id="goToIntegrationsWa" class="btn btn-sm btn-outline-primary">
+                      <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_go_to_integrations">Go to
+                        Integrations</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Step 5 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#waStep5">
+                    <span class="badge bg-success me-2">5</span> <span data-i18n="help_wa_step5_title">Configure Webhook
+                      in Meta</span>
+                  </button>
+                </h2>
+                <div id="waStep5" class="accordion-collapse collapse" data-bs-parent="#whatsappAccordion">
+                  <div class="accordion-body">
+                    <ol class="mb-3">
+                      <li data-i18n="help_wa_step5_1">Go to Meta Developers > WhatsApp > Configuration</li>
+                      <li data-i18n="help_wa_step5_2">Click <strong>Edit</strong> next to Webhook</li>
+                      <li data-i18n="help_wa_step5_3">Paste the <strong>Callback URL</strong> (Webhook URL from
+                        AI Hotel Suite)</li>
+                      <li data-i18n="help_wa_step5_4">Paste the <strong>Verify Token</strong></li>
+                      <li data-i18n="help_wa_step5_5">Click <strong>Verify and save</strong></li>
+                      <li data-i18n="help_wa_step5_6">Subscribe to: <code>messages</code>, <code>message_status</code>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- WhatsApp Troubleshooting -->
+            <div class="card mt-4">
+              <div class="card-header" data-i18n="help_common_errors">Common Errors</div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th data-i18n="help_error">Error</th>
+                        <th data-i18n="help_solution">Solution</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>Invalid token</code></td>
+                        <td data-i18n="help_wa_err1_sol">Generate new token in Meta Developers</td>
+                      </tr>
+                      <tr>
+                        <td><code>Phone number ID not found</code></td>
+                        <td data-i18n="help_wa_err2_sol">Copy exact ID from WhatsApp > Getting Started</td>
+                      </tr>
+                      <tr>
+                        <td><code>403 Forbidden</code></td>
+                        <td data-i18n="help_wa_err3_sol">Ensure token has whatsapp_business_messaging permission</td>
+                      </tr>
+                      <tr>
+                        <td data-i18n="help_wa_err4">Messages not delivered</td>
+                        <td data-i18n="help_wa_err4_sol">First message to user must be template-based</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Tab -->
+        <div class="tab-pane fade" id="features" role="tabpanel">
+          <div class="row g-4">
+            <!-- Service Toggles -->
+            <div class="col-md-6">
+              <div class="card help-card h-100">
+                <div class="card-header">
+                  <i class="fa-solid fa-toggle-on me-2 text-primary"></i><span data-i18n="help_feature_toggles">Service
+                    Toggles</span>
+                </div>
+                <div class="card-body">
+                  <p class="text-muted" data-i18n="help_feature_toggles_desc">Control which services the bot can handle:
+                  </p>
+                  <ul class="mb-3">
+                    <li><strong>Housekeeping</strong> - <span data-i18n="help_toggle_hk">Cleaning, towels, laundry
+                        requests</span></li>
+                    <li><strong>Food & Beverage</strong> - <span data-i18n="help_toggle_fb">Room service, menu
+                        orders</span></li>
+                  </ul>
+                  <div class="tip-box">
+                    <i class="fa-solid fa-lightbulb me-2 text-warning"></i>
+                    <span data-i18n="help_toggle_tip">Disable services your hotel doesn't offer to avoid guest
+                      confusion.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu Upload -->
+            <div class="col-md-6">
+              <div class="card help-card h-100">
+                <div class="card-header">
+                  <i class="fa-solid fa-utensils me-2 text-primary"></i><span data-i18n="help_feature_menu">Menu
+                    Upload</span>
+                </div>
+                <div class="card-body">
+                  <p class="text-muted" data-i18n="help_feature_menu_desc">Upload your restaurant/bar menu so the bot
+                    can answer food questions:</p>
+                  <ul class="mb-3">
+                    <li data-i18n="help_menu_format">Supported formats: PDF, TXT</li>
+                    <li data-i18n="help_menu_prices">Include prices for accurate responses</li>
+                    <li data-i18n="help_menu_update">Update anytime from AI Settings</li>
+                  </ul>
+                  <a href="#" id="goToAiSettingsMenu" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_upload_menu">Upload Menu</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Session Security -->
+            <div class="col-md-6">
+              <div class="card help-card h-100">
+                <div class="card-header">
+                  <i class="fa-solid fa-shield-halved me-2 text-primary"></i><span
+                    data-i18n="help_feature_session">Session Security</span>
+                </div>
+                <div class="card-body">
+                  <p class="text-muted" data-i18n="help_feature_session_desc">Prevent abuse from guests who already
+                    checked out:</p>
+                  <ul class="mb-3">
+                    <li><strong>QR Session Expiry</strong> - <span data-i18n="help_session_expiry">Sessions expire after
+                        24-48 hours</span></li>
+                    <li data-i18n="help_session_rescan">Guests must re-scan QR to continue</li>
+                    <li data-i18n="help_session_pro">PRO tier uses PMS checkout dates automatically</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Knowledge Base -->
+            <div class="col-md-6">
+              <div class="card help-card h-100">
+                <div class="card-header">
+                  <i class="fa-solid fa-book me-2 text-primary"></i><span data-i18n="help_feature_kb">Knowledge
+                    Base</span>
+                </div>
+                <div class="card-body">
+                  <p class="text-muted" data-i18n="help_feature_kb_desc">Upload documents for the bot to learn from:</p>
+                  <ul class="mb-3">
+                    <li data-i18n="help_kb_rules">Hotel rules and policies</li>
+                    <li data-i18n="help_kb_attractions">Local attractions guide</li>
+                    <li data-i18n="help_kb_services">Service descriptions</li>
+                  </ul>
+                  <a href="#" id="goToAiSettingsKB" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-arrow-right me-1"></i><span data-i18n="help_upload_docs">Upload
+                      Documents</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Tab -->
+        <div class="tab-pane fade" id="faq" role="tabpanel">
+          <div class="accordion" id="faqAccordion">
+
+            <!-- FAQ 1 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                  <i class="fa-solid fa-robot me-2 text-muted"></i>
+                  <span data-i18n="help_faq1_q">The bot doesn't respond to messages</span>
+                </button>
+              </h2>
+              <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq1_a">Check the following:</p>
+                  <ol>
+                    <li data-i18n="help_faq1_a1">Verify webhook URL is correctly configured in LINE/Meta</li>
+                    <li data-i18n="help_faq1_a2">Check that tokens haven't expired</li>
+                    <li data-i18n="help_faq1_a3">For LINE: Ensure "Use webhook" is enabled</li>
+                    <li data-i18n="help_faq1_a4">For WhatsApp: Verify webhook subscriptions (messages, message_status)
+                    </li>
+                  </ol>
+                  <a href="#" id="goToIntegrationsFaq" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-plug me-1"></i><span data-i18n="help_check_connection">Check Connection</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#faq2">
+                  <i class="fa-solid fa-language me-2 text-muted"></i>
+                  <span data-i18n="help_faq2_q">Bot responds in wrong language</span>
+                </button>
+              </h2>
+              <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq2_a">The bot auto-detects guest language. If it's responding incorrectly:</p>
+                  <ol>
+                    <li data-i18n="help_faq2_a1">Check "Staff Language" setting in your hotel profile</li>
+                    <li data-i18n="help_faq2_a2">Verify welcome message language matches your market</li>
+                    <li data-i18n="help_faq2_a3">For bilingual hotels, enable "Also send in English" option</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#faq3">
+                  <i class="fa-solid fa-utensils me-2 text-muted"></i>
+                  <span data-i18n="help_faq3_q">Guests can't order food</span>
+                </button>
+              </h2>
+              <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq3_a">Check the following:</p>
+                  <ol>
+                    <li data-i18n="help_faq3_a1">Verify "Food & Beverage" toggle is enabled in AI Settings</li>
+                    <li data-i18n="help_faq3_a2">Upload your menu with prices</li>
+                    <li data-i18n="help_faq3_a3">If product isn't in menu, bot will say it doesn't have info</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#faq4">
+                  <i class="fa-solid fa-qrcode me-2 text-muted"></i>
+                  <span data-i18n="help_faq4_q">QR code doesn't work</span>
+                </button>
+              </h2>
+              <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq4_a">Common QR issues:</p>
+                  <ol>
+                    <li data-i18n="help_faq4_a1"><strong>LINE:</strong> Guest must first add the bot as friend</li>
+                    <li data-i18n="help_faq4_a2"><strong>WhatsApp:</strong> Opens wa.me link - needs WhatsApp installed
+                    </li>
+                    <li data-i18n="help_faq4_a3">Re-download QR codes after changing messaging provider</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#faq5">
+                  <i class="fa-solid fa-clock me-2 text-muted"></i>
+                  <span data-i18n="help_faq5_q">Session expired message</span>
+                </button>
+              </h2>
+              <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq5_a">If guests see "session expired":</p>
+                  <ol>
+                    <li data-i18n="help_faq5_a1">This is a security feature (QR Session Expiry)</li>
+                    <li data-i18n="help_faq5_a2">Guest must re-scan room QR to reconnect</li>
+                    <li data-i18n="help_faq5_a3">Adjust session hours (24h/48h) in AI Settings</li>
+                    <li data-i18n="help_faq5_a4">PRO tier: Uses PMS checkout date instead</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 6 -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#faq6">
+                  <i class="fa-solid fa-user-secret me-2 text-muted"></i>
+                  <span data-i18n="help_faq6_q">How to transfer to human staff?</span>
+                </button>
+              </h2>
+              <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <p data-i18n="help_faq6_a">When the bot can't help, guests can:</p>
+                  <ol>
+                    <li data-i18n="help_faq6_a1">Say "talk to human" or "speak to staff"</li>
+                    <li data-i18n="help_faq6_a2">A task will be created for your staff</li>
+                    <li data-i18n="help_faq6_a3">Staff can reply directly from the Tasks page</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const tokenKey = "token";
+    function getToken() { return localStorage.getItem(tokenKey); }
+    function authQuery() {
+      const t = getToken();
+      return t ? `?token=${encodeURIComponent(t)}` : "";
+    }
+
+    // Navigation links
+    document.getElementById("tasksLinkSidebar").href = "/ui/admin/tasks" + authQuery();
+    document.getElementById("conversationsLinkSidebar").href = "/ui/admin/conversations" + authQuery();
+    document.getElementById("aiSettingsLinkSidebar").href = "/ui/admin/settings/ai" + authQuery();
+    document.getElementById("integrationsLinkSidebar").href = "/ui/admin/settings/integrations" + authQuery();
+
+    // Quick action links
+    document.getElementById("goToAiSettings").href = "/ui/admin/settings/ai" + authQuery();
+    document.getElementById("goToIntegrations").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("goToIntegrationsQR").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("goToIntegrationsLine").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("goToIntegrationsWa").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("goToIntegrationsFaq").href = "/ui/admin/settings/integrations" + authQuery();
+    document.getElementById("goToAiSettingsMenu").href = "/ui/admin/settings/ai" + authQuery();
+    document.getElementById("goToAiSettingsKB").href = "/ui/admin/settings/ai" + authQuery();
+
+    // Provider guide toggle
+    function showProviderSelection() {
+      document.getElementById("lineGuideCard").parentElement.parentElement.classList.remove("d-none");
+      document.getElementById("lineGuideContent").classList.add("d-none");
+      document.getElementById("whatsappGuideContent").classList.add("d-none");
+    }
+
+    document.getElementById("lineGuideCard").addEventListener("click", function () {
+      document.getElementById("lineGuideCard").parentElement.parentElement.classList.add("d-none");
+      document.getElementById("lineGuideContent").classList.remove("d-none");
+    });
+
+    document.getElementById("whatsappGuideCard").addEventListener("click", function () {
+      document.getElementById("whatsappGuideCard").parentElement.parentElement.classList.add("d-none");
+      document.getElementById("whatsappGuideContent").classList.remove("d-none");
+    });
+
+    // Restart onboarding tour
+    function restartOnboarding() {
+      localStorage.removeItem('app_onboarding_seen');
+      localStorage.removeItem('first_setup_done');
+      window.location.href = '/ui/admin/settings/ai' + authQuery();
+    }
+
+    // Initialize i18n
+    I18N.initSelect('lang-select');
+  </script>
+
+  {% include 'admin/change_password_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/admin-sidebar.js?v=2"></script>
+  <script src="/static/js/subscription.js"></script>
+  <script>
+    // Hide PRO upgrade button for Thailand (PMS not available for LINE yet)
+    function hideProButtonForThailand() {
+      const hotelCountry = localStorage.getItem('hotelCountry');
+      if (hotelCountry === 'TH') {
+        document.querySelectorAll('a[href*="/upgrade-pro"]').forEach(btn => {
+          btn.style.display = 'none';
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', hideProButtonForThailand);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+# Development and Testing Dependencies
+# Extends requirements.txt with additional tools for testing
+
+-r requirements.txt
+
+# Test Data Generation
+Faker>=20.0.0              # Generate random test data (names, emails, phones)
+
+# Pytest Plugins
+pytest-xdist>=3.3.0        # Run tests in parallel (pytest -n 4)
+pytest-timeout>=2.2.0      # Timeout protection for long-running tests
+pytest-cov>=4.1.0          # Coverage reporting (pytest --cov)
