@@ -625,18 +625,7 @@ def list_hotels_detailed(
             )
             connected = has_custom or True  # Platform default always "connected"
 
-        # Calculate trial status
-        trial_status = None
-        if h.trial_ends_at:
-            if h.trial_ends_at.tzinfo is None:
-                trial_end_aware = h.trial_ends_at.replace(tzinfo=timezone.utc)
-            else:
-                trial_end_aware = h.trial_ends_at
-            delta = trial_end_aware - now
-            if delta.total_seconds() > 0:
-                trial_status = f"{delta.days} days left"
-            else:
-                trial_status = "Trial ended"
+
 
         # Calculate months active
         months_active = 0
@@ -665,8 +654,7 @@ def list_hotels_detailed(
                 "admin_email": admin_email,
                 "timezone": h.timezone,
                 "subscription_tier": h.subscription_tier or "free",
-                "trial_status": trial_status,
-                "trial_ends_at": h.trial_ends_at.isoformat() if h.trial_ends_at else None,
+
                 "has_stripe": bool(h.stripe_subscription_id),
                 "stripe_customer_id": bool(h.stripe_customer_id),
                 "messaging_provider": provider.upper() if provider == "line" else "WhatsApp",

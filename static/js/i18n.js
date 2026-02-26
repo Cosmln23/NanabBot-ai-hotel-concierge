@@ -517,7 +517,9 @@ const translations = {
     en: "Upgrade to Basic - €29/mo",
   },
   trial_upgrade_pro_btn: {
-    en: "Upgrade to PRO - €79/mo",
+    en: "Upgrade to PRO",
+    ro: "Treci la PRO",
+    th: "อัปเกรดเป็น PRO"
   },
   trial_expired_title: {
     en: "Trial Expired!",

@@ -238,9 +238,8 @@
 
       <!-- Footer Info -->
       <div class="text-center mt-8 text-stone-400 text-sm fade-in visible" style="transition-delay: 200ms;">
-        <p id="trialInfo">Your 7-day trial includes all Basic features.</p>
-        <p id="upgradeInfo" class="mt-2 text-stone-500">Upgrade anytime for <span id="upgradePrice"
-            class="font-semibold text-stone-900">€29/month</span>.</p>
+        <p id="trialInfo">Your account includes all Basic features.</p>
+        <p id="upgradeInfo" class="mt-2 text-stone-500">Upgrade anytime to access advanced features.</p>
       </div>
     </div>
   </main>
@@ -249,8 +248,8 @@
     // Translations
     const translations = {
       en: {
-        trialBadge: "7-Day Free Trial",
-        formTitle: "Start Your Free Trial",
+        trialBadge: "Free Trial",
+        formTitle: "Create Account",
         subtitle: "Join hundreds of hotels automating their concierge.",
         labelEmail: "Email",
         labelPassword: "Password",
@@ -259,13 +258,13 @@
         placeholderEmail: "you@hotel.com",
         placeholderPassword: "Min. 6 characters",
         placeholderHotelName: "My Amazing Hotel",
-        btnText: "Start Free Trial",
-        noCardText: "No credit card required",
+        btnText: "Create Account",
+        noCardText: "No credit card required for setup",
         haveAccountText: "Already have an account?",
         loginLink: "Login here",
-        trialInfo: "Your 7-day trial includes all Basic features.",
-        upgradeInfo: "Upgrade anytime for",
-        upgradePrice: "€29/month",
+        trialInfo: "Your account includes all Basic features.",
+        upgradeInfo: "Upgrade anytime to access advanced features.",
+        upgradePrice: "",
         acceptTermsText: 'I accept the <a href="/terms" target="_blank" class="text-stone-900 font-semibold hover:underline">Terms of Service</a> and the <a href="/dpa" target="_blank" class="text-stone-900 font-semibold hover:underline">Data Processing Agreement</a>',
         errorTerms: "You must accept the Terms and DPA to register",
         errorFields: "Please fill in all fields",
@@ -342,7 +341,7 @@
 
       container.innerHTML = `
         <div class="bg-stone-50 border border-stone-200 rounded-xl p-6 text-left">
-          <h3 class="font-bold text-stone-900 text-lg mb-4 text-center border-b border-stone-200 pb-3">7-Day Free Trial</h3>
+          <h3 class="font-bold text-stone-900 text-lg mb-4 text-center border-b border-stone-200 pb-3">Platform Features</h3>
           
           <div class="space-y-3 text-sm mb-6">
             <div class="flex items-start gap-3">
@@ -363,15 +362,15 @@
             </div>
             <div class="flex items-center gap-3">
               <span class="text-stone-900 mt-0.5">•</span>
-              <span class="text-stone-600">WhatsApp Business API Included</span>
+              <span class="text-stone-600">WhatsApp Business API Supported</span>
             </div>
           </div>
 
           <div class="pt-2">
             <div class="bg-white rounded-lg p-3 text-center border border-stone-200">
-                <span class="text-xs text-stone-500 uppercase tracking-wider">Basic Plan</span>
-                <p class="font-bold text-stone-900 text-lg mt-1">€29/month</p>
-                <p class="text-xs text-stone-400 mt-1">After free trial</p>
+                <span class="text-xs text-stone-500 uppercase tracking-wider">Basic Tier</span>
+                <p class="font-bold text-stone-900 text-lg mt-1">$X / month</p>
+                <p class="text-xs text-stone-400 mt-1">Configurable in Stripe</p>
             </div>
           </div>
         </div>

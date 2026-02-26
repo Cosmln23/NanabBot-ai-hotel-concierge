@@ -45,7 +45,7 @@ WELCOME_EMAIL_TEMPLATES = {
         "step_3": "Guests scan → Bot responds automatically 24/7",
         "benefit": "Your AI assistant answers guest questions about WiFi, check-out, restaurant, room service and more - instantly! See the Help section in Dashboard for more details.",
         "button": "Go to Dashboard",
-        "trial_note": "Free 7-day trial • Ends {trial_date}",
+        "trial_note": "Free trial • Ends {trial_date}",
         "questions": "Questions?",
         "footer": "Thank you for choosing AI Hotel Suite!",
     }
@@ -193,7 +193,7 @@ async def register_page(request: Request):
 def register_hotel(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     """
     Self-registration endpoint for new hotels.
-    Creates a hotel with FREE trial (7 days) and admin user.
+    Creates a hotel with FREE trial and admin user.
     """
     # Rate limit: max 5 registrations per hour per IP
     try:
@@ -318,5 +318,5 @@ def register_hotel(payload: RegisterRequest, request: Request, db: Session = Dep
         success=True,
         hotel_id=hotel.id,
         access_token=access_token,
-        message=f"Welcome! Your 7-day free trial starts now. Trial ends on {trial_ends_at.strftime('%Y-%m-%d')}.",
+        message=f"Welcome! Your free trial starts now. Trial ends on {trial_ends_at.strftime('%Y-%m-%d')}.",
     )

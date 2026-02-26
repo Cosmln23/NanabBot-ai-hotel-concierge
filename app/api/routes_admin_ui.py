@@ -38,40 +38,7 @@ def _require_ui_auth(request: Request):
     return True
 
 
-def _is_trial_expired(request: Request) -> bool:
-    """Check if hotel's trial has expired (for FREE tier only)."""
-    token = request.cookies.get("admin_token") or get_bearer_token(request)
-    if not token:
-        return False
-    db_gen = get_db()
-    try:
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
-        if not user_id:
-            return False
 
-        db = next(db_gen)
-        # Get hotel_id from StaffUser
-        staff = db.query(StaffUser).filter(StaffUser.id == int(user_id)).first()
-        if not staff:
-            return False
-
-        hotel = db.query(Hotel).filter(Hotel.id == staff.hotel_id).first()
-        if not hotel:
-            return False
-
-        if hotel.subscription_tier != "free" or not hotel.trial_ends_at:
-            return False
-
-        trial_ends = hotel.trial_ends_at
-        if trial_ends.tzinfo is None:
-            trial_ends = trial_ends.replace(tzinfo=timezone.utc)
-
-        return datetime.now(timezone.utc) > trial_ends
-    except Exception:
-        return False
-    finally:
-        db_gen.close()
 
 
 @router.get("/conversations")
@@ -121,9 +88,6 @@ def admin_integrations_page(request: Request, code: str = None, auth=Depends(_re
                 )
                 return response
         return auth
-    # Block if trial expired
-    if _is_trial_expired(request):
-        return RedirectResponse(url="/upgrade?reason=trial_expired")
     return _render(request, "integrations.html")
 
 
@@ -138,9 +102,6 @@ def admin_staff_settings_page(request: Request, auth=Depends(_require_ui_auth)):
 def admin_ai_settings_page(request: Request, auth=Depends(_require_ui_auth)):
     if isinstance(auth, RedirectResponse):
         return auth
-    # Block if trial expired
-    if _is_trial_expired(request):
-        return RedirectResponse(url="/upgrade?reason=trial_expired")
     return _render(request, "ai_settings.html")
 
 

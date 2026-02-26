@@ -63,12 +63,10 @@ function getTierBadgeClass(tier) {
 function updateSummaryStats(hotels) {
   const totalHotels = hotels.length;
   const paidHotels = hotels.filter(h => h.has_stripe).length;
-  const trialHotels = hotels.filter(h => h.trial_status && h.trial_status.includes('days left')).length;
   const totalMessages = hotels.reduce((sum, h) => sum + (h.usage_30d?.messages_in || 0), 0);
 
   document.getElementById('statTotalHotels').textContent = formatNumber(totalHotels);
   document.getElementById('statPaidHotels').textContent = formatNumber(paidHotels);
-  document.getElementById('statTrialHotels').textContent = formatNumber(trialHotels);
   document.getElementById('statTotalMessages').textContent = formatNumber(totalMessages);
 }
 
@@ -77,16 +75,12 @@ function renderHotelRow(hotel) {
   const tierClass = getTierBadgeClass(hotel.subscription_tier);
   const tierText = (hotel.subscription_tier || 'free').charAt(0).toUpperCase() + (hotel.subscription_tier || 'free').slice(1);
 
-  // Trial/Stripe status
+  // Stripe status
   let trialStripeHtml = '';
-  if (hotel.trial_status) {
-    const isActive = hotel.trial_status.includes('days left');
-    trialStripeHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${isActive ? 'bg-stone-200 text-stone-900' : 'bg-stone-100 text-stone-400'}">${hotel.trial_status}</span>`;
-  }
   if (hotel.has_stripe) {
-    trialStripeHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-900 text-stone-50 ml-1"><i class="fa-solid fa-check mr-1"></i>Stripe</span>`;
+    trialStripeHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-900 text-stone-50"><i class="fa-solid fa-check mr-1"></i>Stripe</span>`;
   } else {
-    trialStripeHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-500 ml-1"><i class="fa-solid fa-times mr-1"></i>No Stripe</span>`;
+    trialStripeHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-500"><i class="fa-solid fa-times mr-1"></i>No Stripe</span>`;
   }
 
   // Connection status
