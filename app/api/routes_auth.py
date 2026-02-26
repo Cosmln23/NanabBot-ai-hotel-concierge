@@ -61,9 +61,7 @@ def _require_auth(request: Request, db: Session = Depends(get_db)) -> StaffUser:
 
     user = (
         db.query(StaffUser)
-        .filter(
-            StaffUser.id == int(payload.get("sub")), StaffUser.is_active == True
-        )  # noqa: E712
+        .filter(StaffUser.id == int(payload.get("sub")), StaffUser.is_active == True)  # noqa: E712
         .first()
     )
 
@@ -83,15 +81,11 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
         .first()
     )  # noqa: E712
     if not user or not verify_password(payload.password, user.password_hash):
-        logger.info(
-            "Login failed for email %s from %s", payload.email, request.client.host
-        )
+        logger.info("Login failed for email %s from %s", payload.email, request.client.host)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token(user_id=user.id, email=user.email)
-    logger.info(
-        "Login success for email %s from %s", payload.email, request.client.host
-    )
+    logger.info("Login success for email %s from %s", payload.email, request.client.host)
 
     # Get hotel info for frontend
     hotel = db.query(Hotel).filter(Hotel.id == user.hotel_id).first()
@@ -171,9 +165,7 @@ def change_password_force(
     user.must_change_password = False
     db.add(user)
     db.commit()
-    logger.info(
-        "Forced password change for user %s from %s", user.email, request.client.host
-    )
+    logger.info("Forced password change for user %s from %s", user.email, request.client.host)
     return {"success": True}
 
 
@@ -206,9 +198,7 @@ def forgot_password(
     if user_type == "owner":
         target_user = (
             db.query(PlatformOwner)
-            .filter(
-                PlatformOwner.email == payload.email, PlatformOwner.is_active == True
-            )
+            .filter(PlatformOwner.email == payload.email, PlatformOwner.is_active == True)
             .first()
         )  # noqa: E712
     else:
@@ -326,11 +316,7 @@ def forgot_password(
 
 @router.post("/reset-password")
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
-    reset = (
-        db.query(PasswordResetToken)
-        .filter(PasswordResetToken.token == payload.token)
-        .first()
-    )
+    reset = db.query(PasswordResetToken).filter(PasswordResetToken.token == payload.token).first()
     if not reset or reset.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 

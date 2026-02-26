@@ -625,8 +625,6 @@ def list_hotels_detailed(
             )
             connected = has_custom or True  # Platform default always "connected"
 
-
-
         # Calculate months active
         months_active = 0
         if h.created_at:
@@ -654,7 +652,6 @@ def list_hotels_detailed(
                 "admin_email": admin_email,
                 "timezone": h.timezone,
                 "subscription_tier": h.subscription_tier or "free",
-
                 "has_stripe": bool(h.stripe_subscription_id),
                 "stripe_customer_id": bool(h.stripe_customer_id),
                 "messaging_provider": provider.upper() if provider == "line" else "WhatsApp",

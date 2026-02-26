@@ -38,9 +38,6 @@ def _require_ui_auth(request: Request):
     return True
 
 
-
-
-
 @router.get("/conversations")
 def conversations_page(request: Request, auth=Depends(_require_ui_auth)):
     if isinstance(auth, RedirectResponse):

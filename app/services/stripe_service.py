@@ -180,9 +180,7 @@ def _send_subscription_email(
     """
     api_key = settings.resend_api_key
     if not api_key:
-        logger.warning(
-            "RESEND_API_KEY missing; subscription email not sent to %s", to_email
-        )
+        logger.warning("RESEND_API_KEY missing; subscription email not sent to %s", to_email)
         return False
 
     tpl = template.get(language, template["en"])
@@ -190,9 +188,7 @@ def _send_subscription_email(
 
     # Determine button color based on template type
     is_warning = "warning" in tpl or "status" in tpl
-    button_color = (
-        "#dc2626" if is_warning else "#1c1917"
-    )  # Red for warnings, stone-dark for info
+    button_color = "#dc2626" if is_warning else "#1c1917"  # Red for warnings, stone-dark for info
     box_bg = "#fef2f2" if is_warning else "#fafaf9"  # Red-ish or stone background
     box_border = "#dc2626" if is_warning else "#1c1917"
 
@@ -308,15 +304,11 @@ def _send_subscription_email(
                     "html": html_body,
                 }
             )
-        logger.info(
-            f"[BILLING] Subscription email sent to {to_email} (type: {tpl['title']})"
-        )
+        logger.info(f"[BILLING] Subscription email sent to {to_email} (type: {tpl['title']})")
         return True
     except httpx.TimeoutException:
         # Email timeout - log but don't fail webhook
-        logger.warning(
-            f"[BILLING] Email timeout for {to_email} - webhook will continue"
-        )
+        logger.warning(f"[BILLING] Email timeout for {to_email} - webhook will continue")
         return False
     except Exception as e:
         # Email failed - log but don't fail webhook (non-critical)
@@ -334,9 +326,7 @@ def is_event_processed(event_id: str, db: Session) -> bool:
         existing = (
             db.query(StripeWebhookEvent)
             .filter(StripeWebhookEvent.event_id == event_id)
-            .with_for_update(
-                nowait=False
-            )  # Wait for lock if another transaction has it
+            .with_for_update(nowait=False)  # Wait for lock if another transaction has it
             .first()
         )
         return existing is not None
@@ -564,9 +554,7 @@ def handle_checkout_completed(session: dict, db: Session) -> bool:
 
         # IMPORTANT: Prevent downgrade from PRO to BASIC (simultaneous checkout protection)
         if hotel.subscription_tier == "pro" and new_tier == "basic":
-            logger.warning(
-                f"[BILLING] Preventing downgrade from PRO to BASIC for hotel {hotel_id}"
-            )
+            logger.warning(f"[BILLING] Preventing downgrade from PRO to BASIC for hotel {hotel_id}")
             return True  # Accept webhook but don't downgrade
 
         previous_tier = hotel.subscription_tier
@@ -608,9 +596,7 @@ def handle_subscription_updated(subscription: dict, db: Session) -> bool:
 
         hotel = db.query(Hotel).filter(Hotel.id == int(hotel_id)).first()
         if not hotel:
-            logger.warning(
-                f"[BILLING] Hotel {hotel_id} not found in subscription update"
-            )
+            logger.warning(f"[BILLING] Hotel {hotel_id} not found in subscription update")
             return True  # Accept webhook to prevent retry
 
         status = subscription.get("status")
@@ -638,9 +624,7 @@ def handle_subscription_updated(subscription: dict, db: Session) -> bool:
             if previous_tier != "free":
                 admin_email = _get_admin_email(int(hotel_id), db)
                 if admin_email:
-                    portal_url = (
-                        settings.public_api_base_url or "https://app.yourdomain.com"
-                    )
+                    portal_url = settings.public_api_base_url or "https://app.yourdomain.com"
                     portal_url = f"{portal_url}/upgrade"
 
                     language = hotel.interface_language or "en"
@@ -775,9 +759,7 @@ def handle_charge_refunded(charge: dict, db: Session) -> bool:
         # Find hotel by stripe_customer_id
         hotel = db.query(Hotel).filter(Hotel.stripe_customer_id == customer_id).first()
         if not hotel:
-            logger.warning(
-                f"[BILLING] Hotel not found for customer {customer_id} in refund"
-            )
+            logger.warning(f"[BILLING] Hotel not found for customer {customer_id} in refund")
             return True
 
         # Check if this is a FULL refund (>=90% of total to account for rounding)
@@ -799,9 +781,7 @@ def handle_charge_refunded(charge: dict, db: Session) -> bool:
             # Send cancellation email
             admin_email = _get_admin_email(hotel.id, db)
             if admin_email:
-                portal_url = (
-                    settings.public_api_base_url or "https://app.yourdomain.com"
-                )
+                portal_url = settings.public_api_base_url or "https://app.yourdomain.com"
                 portal_url = f"{portal_url}/upgrade"
 
                 language = hotel.interface_language or "en"
@@ -869,7 +849,9 @@ def handle_invoice_upcoming(invoice: dict, db: Session) -> bool:
 
         # Generate portal URL for managing subscription
         portal_url = settings.public_api_base_url or "https://app.yourdomain.com"
-        portal_url = f"{portal_url}/admin/tasks"  # Redirect to dashboard, they can click manage subscription
+        portal_url = (
+            f"{portal_url}/admin/tasks"  # Redirect to dashboard, they can click manage subscription
+        )
 
         # Send email
         language = hotel.interface_language or "en"
@@ -926,9 +908,7 @@ def create_customer_portal_session(
             return_url=return_url,
             locale=locale,
         )
-        logger.info(
-            f"Created Stripe portal session for hotel {hotel_id} (locale={locale})"
-        )
+        logger.info(f"Created Stripe portal session for hotel {hotel_id} (locale={locale})")
         return session.url, None
 
     except stripe.error.StripeError as e:
@@ -951,9 +931,7 @@ def verify_webhook_signature(payload: bytes, sig_header: str) -> Optional[dict]:
         return None
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.stripe_webhook_secret
-        )
+        event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
         return event
     except stripe.error.SignatureVerificationError as e:
         logger.error(f"Invalid Stripe webhook signature: {e}")
