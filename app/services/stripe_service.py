@@ -687,7 +687,7 @@ def handle_invoice_payment_failed(invoice: dict, db: Session) -> bool:
 
         logger.warning(
             f"[BILLING] Invoice payment failed: customer={customer_id}, subscription={subscription_id}, "
-            f"attempt={attempt_count}, amount={amount_due/100:.2f} {currency}"
+            f"attempt={attempt_count}, amount={amount_due / 100:.2f} {currency}"
         )
 
         # Find hotel by stripe_customer_id
@@ -753,7 +753,7 @@ def handle_charge_refunded(charge: dict, db: Session) -> bool:
 
         logger.info(
             f"[BILLING] Charge refunded: customer={customer_id}, "
-            f"refunded={amount_refunded/100:.2f}/{amount_total/100:.2f} {currency.upper()}"
+            f"refunded={amount_refunded / 100:.2f}/{amount_total / 100:.2f} {currency.upper()}"
         )
 
         # Find hotel by stripe_customer_id
@@ -775,7 +775,7 @@ def handle_charge_refunded(charge: dict, db: Session) -> bool:
 
             logger.warning(
                 f"[BILLING] FULL REFUND: Hotel {hotel.id} downgraded from {previous_tier.upper()} "
-                f"to FREE and DISABLED (refund: {amount_refunded/100:.2f} {currency.upper()})"
+                f"to FREE and DISABLED (refund: {amount_refunded / 100:.2f} {currency.upper()})"
             )
 
             # Send cancellation email
@@ -796,7 +796,7 @@ def handle_charge_refunded(charge: dict, db: Session) -> bool:
             # Partial refund - just log, no tier change
             logger.info(
                 f"[BILLING] Partial refund for hotel {hotel.id}: "
-                f"{amount_refunded/100:.2f}/{amount_total/100:.2f} {currency.upper()} - no tier change"
+                f"{amount_refunded / 100:.2f}/{amount_total / 100:.2f} {currency.upper()} - no tier change"
             )
 
         return True

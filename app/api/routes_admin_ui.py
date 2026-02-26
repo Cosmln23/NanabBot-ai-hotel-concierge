@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request
@@ -14,7 +14,7 @@ from app.core.security import (
     decode_access_token,
     get_bearer_token,
 )
-from app.models import Hotel, StaffUser
+from app.models import StaffUser
 
 router = APIRouter(prefix="/ui/admin", tags=["admin-ui"])
 settings = get_settings()
